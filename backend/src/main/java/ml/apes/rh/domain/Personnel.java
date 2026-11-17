@@ -6,7 +6,10 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 import java.time.LocalDate;
 import java.util.Locale;
+
+import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 /** Un personnel hérite de toutes les informations d'une personne. Il peut se connecter (matricule + mot de passe). */
@@ -14,6 +17,8 @@ import lombok.Setter;
 @Table(name = "personnel")
 @Getter
 @Setter
+@AllArgsConstructor
+@NoArgsConstructor
 public class Personnel extends Personne {
 
     @NotBlank(message = "Le matricule est obligatoire")

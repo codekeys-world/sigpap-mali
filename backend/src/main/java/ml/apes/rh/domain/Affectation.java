@@ -3,7 +3,9 @@ package ml.apes.rh.domain;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 /** Référentiel d'une mutation partagée par plusieurs agents. */
@@ -11,6 +13,8 @@ import lombok.Setter;
 @Table(name = "affectation")
 @Getter
 @Setter
+@AllArgsConstructor
+@NoArgsConstructor
 public class Affectation extends BaseEntity {
 
     @NotNull(message = "Le type d'affectation est obligatoire")

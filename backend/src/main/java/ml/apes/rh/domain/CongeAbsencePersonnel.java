@@ -8,7 +8,10 @@ import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
+
+import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 import ml.apes.rh.exception.BusinessException;
 
@@ -16,6 +19,8 @@ import ml.apes.rh.exception.BusinessException;
 @Table(name = "conge_absence_personnel")
 @Getter
 @Setter
+@AllArgsConstructor
+@NoArgsConstructor
 public class CongeAbsencePersonnel extends BaseEntity {
 
     @JsonIgnore

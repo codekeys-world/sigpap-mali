@@ -4,7 +4,10 @@ import jakarta.persistence.MappedSuperclass;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import java.time.LocalDate;
+
+import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 import ml.apes.rh.exception.BusinessException;
 
@@ -12,6 +15,8 @@ import ml.apes.rh.exception.BusinessException;
 @MappedSuperclass
 @Getter
 @Setter
+@AllArgsConstructor
+@NoArgsConstructor
 public abstract class Periode extends BaseEntity {
 
     private LocalDate dateDebut;

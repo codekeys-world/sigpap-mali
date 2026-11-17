@@ -2,7 +2,10 @@ package ml.apes.rh.domain;
 
 import jakarta.persistence.*;
 import java.time.Instant;
+
+import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 @Entity
@@ -12,6 +15,8 @@ import lombok.Setter;
 )
 @Getter
 @Setter
+@AllArgsConstructor
+@NoArgsConstructor
 public class PasswordResetToken {
 
     @Id

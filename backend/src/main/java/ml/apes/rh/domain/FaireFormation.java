@@ -3,7 +3,9 @@ package ml.apes.rh.domain;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Size;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 /** Sous-entité « faire formation » : participation d'un personnel à une formation certifiante. */
@@ -11,6 +13,8 @@ import lombok.Setter;
 @Table(name = "faire_formation")
 @Getter
 @Setter
+@AllArgsConstructor
+@NoArgsConstructor
 public class FaireFormation extends Periode {
 
     @JsonIgnore

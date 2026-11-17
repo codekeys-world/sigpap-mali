@@ -10,7 +10,10 @@ import jakarta.persistence.Table;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import java.time.LocalDate;
+
+import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 /** Décision disciplinaire enregistrée dans le dossier d'un agent. */
@@ -18,6 +21,8 @@ import lombok.Setter;
 @Table(name = "sanction_personnel")
 @Getter
 @Setter
+@AllArgsConstructor
+@NoArgsConstructor
 public class SanctionPersonnel extends BaseEntity {
 
     @JsonIgnore

@@ -3,13 +3,17 @@ package ml.apes.rh.domain;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 @Entity
 @Table(name = "poste")
 @Getter
 @Setter
+@AllArgsConstructor
+@NoArgsConstructor
 public class Poste extends BaseEntity {
 
     @NotBlank(message = "Le nom du poste est obligatoire")

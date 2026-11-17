@@ -8,7 +8,10 @@ import jakarta.validation.constraints.PastOrPresent;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 import java.time.LocalDate;
+
+import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 @Entity
@@ -16,6 +19,8 @@ import lombok.Setter;
 @Inheritance(strategy = InheritanceType.JOINED)
 @Getter
 @Setter
+@AllArgsConstructor
+@NoArgsConstructor
 public abstract class Personne extends BaseEntity {
 
     @NotBlank(message = "Le nom est obligatoire")

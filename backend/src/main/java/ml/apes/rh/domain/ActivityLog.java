@@ -2,7 +2,10 @@ package ml.apes.rh.domain;
 
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
+
+import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 /** Journal d'activité : écritures, connexions, exports et documents, avec l'origine technique (IP, navigateur…). */
@@ -10,6 +13,8 @@ import lombok.Setter;
 @Table(name = "journal_activite")
 @Getter
 @Setter
+@AllArgsConstructor
+@NoArgsConstructor
 public class ActivityLog {
 
     @Id

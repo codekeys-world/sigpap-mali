@@ -5,13 +5,17 @@ import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 @Entity
 @Table(name = "corps")
 @Getter
 @Setter
+@AllArgsConstructor
+@NoArgsConstructor
 public class Corps extends BaseEntity {
 
     @NotBlank(message = "Le nom du corps est obligatoire")

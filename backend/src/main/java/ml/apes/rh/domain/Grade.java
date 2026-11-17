@@ -4,13 +4,17 @@ import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 @Entity
 @Table(name = "grade", uniqueConstraints = @UniqueConstraint(columnNames = { "nom", "corps_id" }))
 @Getter
 @Setter
+@AllArgsConstructor
+@NoArgsConstructor
 public class Grade extends BaseEntity {
 
     @NotBlank(message = "Le nom du grade est obligatoire")

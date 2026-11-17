@@ -4,7 +4,10 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
 import java.time.LocalDate;
+
+import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 /** Pièce justificative du dossier d'un agent : le fichier est sur le serveur, la base conserve son chemin. */
@@ -12,6 +15,8 @@ import lombok.Setter;
 @Table(name = "piece_justificative")
 @Getter
 @Setter
+@AllArgsConstructor
+@NoArgsConstructor
 public class PieceJustificative extends BaseEntity {
 
     @JsonIgnore

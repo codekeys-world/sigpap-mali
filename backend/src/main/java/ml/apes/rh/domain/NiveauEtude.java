@@ -5,13 +5,17 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.Table;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 @Entity
 @Table(name = "niveau_etude")
 @Getter
 @Setter
+@AllArgsConstructor
+@NoArgsConstructor
 public class NiveauEtude extends BaseEntity {
 
     @NotBlank(message = "Le nom du niveau est obligatoire")

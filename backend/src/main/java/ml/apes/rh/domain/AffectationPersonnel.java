@@ -7,7 +7,10 @@ import java.time.YearMonth;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.List;
+
+import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 /** Période pendant laquelle un personnel occupe une affectation. */
@@ -15,6 +18,8 @@ import lombok.Setter;
 @Table(name = "affectation_personnel")
 @Getter
 @Setter
+@AllArgsConstructor
+@NoArgsConstructor
 public class AffectationPersonnel extends Periode {
 
     @JsonIgnore

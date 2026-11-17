@@ -3,7 +3,10 @@ package ml.apes.rh.domain;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import java.time.LocalDate;
+
+import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 /** Historique des situations d'un agent (décès, maladie, abandon de poste, retraite, reprise). */
@@ -11,6 +14,8 @@ import lombok.Setter;
 @Table(name = "changement_situation")
 @Getter
 @Setter
+@AllArgsConstructor
+@NoArgsConstructor
 public class ChangementSituation extends BaseEntity {
 
     @JsonIgnore

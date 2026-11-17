@@ -3,7 +3,9 @@ package ml.apes.rh.domain;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Size;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 /** Historique de port de grade d'un personnel. */
@@ -11,6 +13,8 @@ import lombok.Setter;
 @Table(name = "historique_grade")
 @Getter
 @Setter
+@AllArgsConstructor
+@NoArgsConstructor
 public class HistoriqueGrade extends Periode {
 
     @JsonIgnore

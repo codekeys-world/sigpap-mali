@@ -6,13 +6,18 @@ import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 import java.util.HashSet;
 import java.util.Set;
+
+import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 @Entity
 @Table(name = "role")
 @Getter
 @Setter
+@AllArgsConstructor
+@NoArgsConstructor
 public class Role extends BaseEntity {
 
     @NotBlank(message = "Le nom du rôle est obligatoire")

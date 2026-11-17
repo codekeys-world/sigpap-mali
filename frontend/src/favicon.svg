@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <path d="M32 3 57 12v18c0 15-10 25-25 31C17 55 7 45 7 30V12L32 3Z" fill="#4b0d0d" stroke="#e5bd6b" stroke-width="2"/>
+  <path d="M10 13 31 5v7H10Z" fill="#009245"/>
+  <path d="M33 5 54 13H33Z" fill="#e30613"/>
+  <path d="M10 14h44" fill="none" stroke="#ffd600" stroke-width="2"/>
+  <text x="32" y="40" fill="#fff" font-family="Arial,Helvetica,sans-serif" font-size="23" font-weight="800" text-anchor="middle">AP</text>
+</svg>

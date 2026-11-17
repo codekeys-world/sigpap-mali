@@ -1,0 +1,11 @@
+<header class="page-banner">
+  <div class="page-banner-copy">
+    <p class="page-banner-eyebrow">{{ eyebrow }}</p>
+    <h1>{{ title }}</h1>
+    @if (description) {
+      <p class="page-banner-description">{{ description }}</p>
+    }
+    <div class="page-banner-meta"><ng-content select="[pageHeaderMeta]" /></div>
+  </div>
+  <div class="page-banner-actions"><ng-content select="[pageHeaderActions]" /></div>
+</header>

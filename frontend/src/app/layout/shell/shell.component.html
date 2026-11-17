@@ -1,0 +1,124 @@
+<a class="skip-link" href="#main-content">Aller au contenu</a>
+<div class="app-shell">
+  @if (menuOpen) {
+    <button
+      class="nav-backdrop d-lg-none"
+      aria-label="Fermer le menu de navigation"
+      (click)="menuOpen = false"
+    ></button>
+  }
+  <aside id="main-navigation" class="sidebar" [class.open]="menuOpen">
+    <a class="brand text-decoration-none" routerLink="/">
+      <img
+        width="54"
+        height="62"
+        decoding="async"
+        src="assets/logo-small.webp"
+        alt="Administration pénitentiaire du Mali"
+      />
+      <div>
+        <div class="t1">SIGPAP-MALI</div>
+        <div class="t2">Administration Pénitentiaire</div>
+      </div>
+    </a>
+    <div class="tricolor mb-2"></div>
+    <nav>
+      @for (n of nav; track $index) {
+        @if (visible(n)) {
+          @if (n.section) {
+            <div class="nav-section">{{ n.section }}</div>
+          } @else {
+            <a
+              class="nav-link-x"
+              [routerLink]="href(n)"
+              routerLinkActive="active"
+              (click)="menuOpen = false"
+            >
+              <i class="fa-solid" [ngClass]="n.icon"></i>
+              {{
+                auth.hasRole('UTILISATEUR') && n.link === '/app/personnel' ? 'Mon dossier' : n.label
+              }}
+            </a>
+          }
+        }
+      }
+    </nav>
+    <div class="sidebar-user">
+      <div class="d-flex align-items-center gap-2 mb-2">
+        <app-avatar [slug]="s()?.slug" [photo]="s()?.photo" [initials]="ini" size="sm" color="c2" />
+        <div class="lh-sm">
+          <div class="fw-semibold small">{{ s()?.prenom }} {{ s()?.nom }}</div>
+          <div style="font-size: 0.7rem; color: #d9bcbc">{{ roleLabel }}</div>
+        </div>
+      </div>
+      <a
+        class="btn btn-sm btn-outline-light w-100 mb-2"
+        routerLink="/app/profil"
+        (click)="menuOpen = false"
+        ><i class="fa-solid fa-user-gear"></i> Mon profil</a
+      >
+      <button class="btn btn-sm btn-light w-100" (click)="auth.logout()">
+        <i class="fa-solid fa-right-from-bracket"></i> Se déconnecter
+      </button>
+    </div>
+  </aside>
+
+  <div class="main">
+    <header class="topbar">
+      <button
+        class="icon-btn d-lg-none"
+        aria-label="Ouvrir le menu de navigation"
+        [attr.aria-expanded]="menuOpen"
+        aria-controls="main-navigation"
+        (click)="menuOpen = !menuOpen"
+      >
+        <i class="fa-solid fa-bars"></i>
+      </button>
+      @if (!auth.hasRole('UTILISATEUR')) {
+        <form
+          class="quick-agent-search search-box d-none d-sm-flex"
+          role="search"
+          (ngSubmit)="recherche()"
+        >
+          <i class="fa-solid fa-magnifying-glass"></i>
+          <input
+            name="agentSearch"
+            aria-label="Rechercher un agent par prénom, nom, matricule, téléphone ou service"
+            placeholder="Prénom, nom, matricule, téléphone ou service…"
+            [(ngModel)]="q"
+          />
+          <button class="btn btn-primary" type="submit" title="Rechercher un agent">
+            <span class="d-none d-xl-inline">Rechercher</span>
+            <span class="d-xl-none" aria-hidden="true">→</span>
+          </button>
+        </form>
+      }
+      <div class="ms-auto d-flex align-items-center gap-2">
+        <a class="icon-btn text-decoration-none" routerLink="/" title="Page d'accueil"
+          ><i class="fa-solid fa-house"></i
+        ></a>
+        <a
+          class="user-chip text-decoration-none text-reset"
+          routerLink="/app/profil"
+          title="Mon profil"
+          ><app-avatar [slug]="s()?.slug" [photo]="s()?.photo" [initials]="ini" />
+          <div class="lh-sm d-none d-md-block">
+            <div class="small fw-semibold">{{ s()?.prenom }} {{ s()?.nom }}</div>
+            <div style="font-size: 0.7rem" class="text-muted">{{ s()?.matricule }}</div>
+          </div></a
+        >
+      </div>
+    </header>
+    <main class="content" id="main-content" tabindex="-1">
+      @if (auth.mustChangePassword()) {
+        <app-alert
+          class="d-block mb-3"
+          type="warning"
+          titre="Mot de passe temporaire"
+          message="Choisissez un nouveau mot de passe pour accéder à l'application."
+        />
+      }
+      <router-outlet />
+    </main>
+  </div>
+</div>

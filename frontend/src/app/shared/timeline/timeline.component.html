@@ -1,0 +1,107 @@
+@if (!items.length) {
+  <app-alert
+    type="info"
+    titre="Liste vide"
+    message="Aucun événement enregistré dans cet historique."
+  />
+}
+@if (items.length) {
+  <div class="timeline">
+    @for (it of items; track $index) {
+      <div class="tl-item">
+        <div class="tl-dot" [style.background]="it.color || '#8B1E1E'">
+          <i class="fa-solid" [ngClass]="it.icon || 'fa-circle'"></i>
+        </div>
+        <div class="tl-card">
+          <div class="d-flex flex-wrap justify-content-between align-items-start gap-2">
+            <div>
+              <div class="tl-date"><i class="fa-regular fa-calendar"></i> {{ it.date }}</div>
+              <div class="fw-bold">{{ it.titre }}</div>
+              @if (it.sousTitre) {
+                <div class="text-muted small">{{ it.sousTitre }}</div>
+              }
+            </div>
+            <div class="d-flex align-items-center gap-1 flex-wrap">
+              @if (it.enCours) {
+                <span class="badge-soft green"
+                  ><i class="fa-solid fa-circle-play"></i> En cours</span
+                >
+              }
+              @if (it.badge) {
+                <span class="badge-soft" [ngClass]="it.badgeClass || 'bordeaux'">{{
+                  it.badge
+                }}</span>
+              }
+              @for (a of actions; track a.name) {
+                <button
+                  class="btn btn-sm btn-light"
+                  (click)="action.emit({ name: a.name, row: it.ref })"
+                >
+                  <i class="fa-solid" [ngClass]="a.icon"></i> {{ a.label }}
+                </button>
+              }
+              @if (editable) {
+                <button class="btn btn-sm btn-light" title="Modifier" (click)="edit.emit(it.ref)">
+                  <i class="fa-solid fa-pen"></i>
+                </button>
+                <button
+                  class="btn btn-sm btn-light text-danger"
+                  title="Supprimer"
+                  (click)="remove.emit(it.ref)"
+                >
+                  <i class="fa-solid fa-trash"></i>
+                </button>
+              }
+            </div>
+          </div>
+          @if (it.details?.length) {
+            <div class="row g-2 mt-1">
+              @for (d of it.details; track d.label) {
+                <div class="col-sm-6">
+                  <span class="card-sub">{{ d.label }}</span>
+                  <div class="small fw-semibold">{{ d.value }}</div>
+                </div>
+              }
+            </div>
+          }
+          @if (it.liste?.items?.length) {
+            <div class="mt-2">
+              <div class="card-sub">{{ it.liste!.titre }}</div>
+              <div class="d-flex flex-wrap gap-1 mt-1">
+                @for (x of it.liste!.items; track $index) {
+                  <span class="badge-soft bordeaux"
+                    ><i class="fa-solid fa-briefcase"></i> {{ x }}</span
+                  >
+                }
+              </div>
+            </div>
+          }
+          @if (it.fichiers?.length) {
+            <div class="mt-2">
+              @for (f of it.fichiers; track f.nom) {
+                <span class="btn-group me-1">
+                  <button
+                    class="btn btn-sm btn-outline-primary"
+                    title="Ouvrir"
+                    (click)="ouvrir(f.nom)"
+                  >
+                    <i class="fa-solid fa-paperclip"></i> {{ f.label }}
+                  </button>
+                  <button
+                    class="btn btn-sm btn-outline-success"
+                    title="Télécharger"
+                    (click)="telecharger(f.nom)"
+                  >
+                    <i class="fa-solid fa-download"></i></button
+                ></span>
+              }
+            </div>
+          }
+          @if (it.audit) {
+            <div class="tl-audit"><i class="fa-solid fa-user-pen"></i> {{ it.audit }}</div>
+          }
+        </div>
+      </div>
+    }
+  </div>
+}

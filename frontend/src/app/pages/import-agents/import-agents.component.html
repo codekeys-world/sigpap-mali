@@ -1,0 +1,177 @@
+<app-page-header
+  title="Importer des agents"
+  eyebrow="Gestion du personnel"
+  description="Préparez votre fichier Excel et vérifiez chaque ligne avant l’enregistrement."
+>
+  <div pageHeaderActions class="d-flex flex-wrap gap-2">
+    <button class="btn btn-light" (click)="modele()">
+      <i class="fa-solid fa-download"></i> Modèle Excel
+    </button>
+    <a class="btn btn-light" routerLink="/app/personnel"
+      ><i class="fa-solid fa-arrow-left"></i> Retour à la liste</a
+    >
+  </div>
+</app-page-header>
+<div class="card-x" style="max-width: 1000px">
+  <div class="row g-3">
+    <div class="col-md-6">
+      <div class="p-3 rounded-4 h-100" style="background: #faf7f7">
+        <div class="fw-bold mb-1">
+          <span class="badge-soft bordeaux me-1">1</span> Télécharger le modèle
+        </div>
+        <p class="small text-muted mb-2">
+          Le modèle contient les colonnes attendues, des listes déroulantes, les consignes et la
+          liste des grades et services existants.
+        </p>
+        <button class="btn btn-outline-success btn-sm" (click)="modele()">
+          <i class="fa-solid fa-download"></i> Modèle Excel
+        </button>
+      </div>
+    </div>
+    <div class="col-md-6">
+      <div class="p-3 rounded-4 h-100" style="background: #faf7f7">
+        <div class="fw-bold mb-1">
+          <span class="badge-soft bordeaux me-1">2</span> Choisir votre fichier rempli
+        </div>
+        <input
+          type="file"
+          class="form-control form-control-sm"
+          accept=".xlsx"
+          (change)="choisir($event)"
+          title="Choisir un fichier à joindre"
+        />
+        @if (fichier) {
+          <div class="form-text">
+            <i class="fa-solid fa-file-excel text-success"></i> {{ fichier.name }} ({{
+              (fichier.size / 1024).toFixed(0)
+            }}
+            Ko)
+          </div>
+        }
+      </div>
+    </div>
+  </div>
+
+  <div class="d-flex flex-wrap gap-2 mt-3">
+    <button
+      class="btn btn-outline-primary"
+      [disabled]="!fichier || chargement"
+      (click)="lancer(true)"
+    >
+      @if (chargement && mode === 'verif') {
+        <span class="spinner-border spinner-border-sm"></span>
+      } @else {
+        <i class="fa-solid fa-magnifying-glass-chart"></i>
+      }
+      Vérifier le fichier
+    </button>
+    <button
+      class="btn btn-primary"
+      [disabled]="!peutImporter || chargement"
+      (click)="lancer(false)"
+      title="Disponible après une vérification sans erreur bloquante"
+    >
+      @if (chargement && mode === 'import') {
+        <span class="spinner-border spinner-border-sm"></span>
+      } @else {
+        <i class="fa-solid fa-file-import"></i>
+      }
+      Importer les lignes valides
+    </button>
+  </div>
+
+  @if (res) {
+    <hr />
+    <div class="row g-2 text-center mb-3">
+      <div class="col-4">
+        <div class="ref-tile">
+          <div class="num">{{ res.total }}</div>
+          <div class="card-sub">Lignes lues</div>
+        </div>
+      </div>
+      <div class="col-4">
+        <div class="ref-tile">
+          <div class="num" style="color: #009245">
+            {{ res.simulation ? res.valides : res.crees }}
+          </div>
+          <div class="card-sub">
+            {{ res.simulation ? 'Valides (prêtes à importer)' : 'Agents créés' }}
+          </div>
+        </div>
+      </div>
+      <div class="col-4">
+        <div class="ref-tile">
+          <div class="num" [style.color]="res.erreurs.length ? '#E30613' : '#333'">
+            {{ res.erreurs.length }}
+          </div>
+          <div class="card-sub">En erreur</div>
+        </div>
+      </div>
+    </div>
+    @if (res.simulation) {
+      <app-alert
+        class="d-block mb-3"
+        type="info"
+        titre="Vérification terminée"
+        message="Rien n'a encore été enregistré."
+      >
+        @if (res.valides) {
+          <div class="small">
+            Cliquez sur « Importer les lignes valides » pour créer {{ res.valides }} agent(s).
+          </div>
+        } @else {
+          <div class="small">
+            Aucune ligne valide : corrigez le fichier puis relancez la vérification.
+          </div>
+        }
+      </app-alert>
+    } @else {
+      <app-alert
+        class="d-block mb-3"
+        type="success"
+        titre="Import terminé"
+        [message]="res.crees + ' agent(s) créé(s).'"
+      />
+      @if (res.comptes.length) {
+        <app-alert
+          class="d-block mb-3"
+          type="warning"
+          titre="Mots de passe temporaires générés"
+          [message]="
+            res.comptes.length +
+            ' mot(s) de passe ne seront plus affichés : téléchargez-les et transmettez-les de façon sécurisée. Chaque agent devra le changer à sa première connexion.'
+          "
+        >
+          <button class="btn btn-sm btn-warning mt-2" (click)="telechargerComptes()">
+            <i class="fa-solid fa-download"></i> Télécharger (CSV)
+          </button>
+        </app-alert>
+      }
+    }
+    @if (res.erreurs.length) {
+      <div class="fw-bold mb-2 text-danger">
+        <i class="fa-solid fa-triangle-exclamation"></i> Lignes en erreur (ignorées)
+      </div>
+      <div class="table-responsive" style="max-height: 340px; overflow: auto">
+        <table class="table table-modern table-sm align-middle">
+          <thead>
+            <tr>
+              <th>Ligne Excel</th>
+              <th>Matricule</th>
+              <th>Problème</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (e of res.erreurs; track $index) {
+              <tr>
+                <td>{{ e.ligne }}</td>
+                <td>{{ e.matricule || 'Non renseigné' }}</td>
+                <td class="small text-danger">{{ e.message }}</td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    }
+  }
+</div>

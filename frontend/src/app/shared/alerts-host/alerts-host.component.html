@@ -1,0 +1,13 @@
+<div class="alerts-zone" aria-live="polite">
+  @for (a of notif.alertes; track a.id) {
+    <app-alert
+      [type]="a.type"
+      [titre]="a.titre"
+      [message]="a.message"
+      [details]="a.details"
+      [duree]="a.duree"
+      [dismissible]="true"
+      (closed)="notif.dismiss(a.id)"
+    />
+  }
+</div>

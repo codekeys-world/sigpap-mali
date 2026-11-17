@@ -1,0 +1,14 @@
+:host {
+  display: block;
+  min-width: 0;
+}
+
+@media (max-width: 575px) {
+  .card-x.embedded {
+    padding: 0;
+  }
+  .search-box {
+    width: 100%;
+    min-width: 0;
+  }
+}

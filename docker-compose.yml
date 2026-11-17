@@ -1,0 +1,107 @@
+services:
+  mysql:
+    image: mysql:8.4
+    container_name: sigpap-mysql
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${DB_NAME}
+      MYSQL_USER: ${DB_USER}
+      MYSQL_PASSWORD: ${DB_PASSWORD}
+      TZ: UTC
+    command: --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
+    ports:
+      - '${MYSQL_PORT:-3306}:3306'
+    volumes:
+      - mysql_data:/var/lib/mysql
+    healthcheck:
+      test:
+        [
+          'CMD',
+          'mysqladmin',
+          'ping',
+          '-h',
+          'localhost',
+          '-uroot',
+          '-p${MYSQL_ROOT_PASSWORD}',
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 20s
+    networks:
+      - sigpap-network
+
+  sigpap-backend:
+    build:
+      context: .
+      dockerfile: docker/backend/Dockerfile
+    env_file:
+      - .env
+    image: codekeys/sigpap-backend:${APPLICATION_VERSION}
+    container_name: sigpap-backend-${APPLICATION_VERSION}
+    restart: unless-stopped
+    depends_on:
+      mysql:
+        condition: service_healthy
+    environment:
+      DB_HOST: ${DB_HOST}
+      DB_PORT: ${DB_PORT}
+      DB_NAME: ${DB_NAME}
+      DB_USER: ${DB_USER}
+      DB_PASSWORD: ${DB_PASSWORD}
+      JWT_SECRET: ${JWT_SECRET}
+      JWT_EXPIRATION_MINUTES: ${JWT_EXPIRATION_MINUTES}
+      SEED_ENABLED: ${SEED_ENABLED}
+      MAIL_HOST: ${MAIL_HOST}
+      MAIL_PORT: ${MAIL_PORT}
+      MAIL_USERNAME: ${MAIL_USERNAME}
+      MAIL_PASSWORD: ${MAIL_PASSWORD}
+      MAIL_FROM: ${MAIL_FROM}
+      FRONTEND_URL: ${FRONTEND_URL}
+      MAIL_SMTP_AUTH: ${MAIL_SMTP_AUTH}
+      MAIL_SMTP_STARTTLS: ${MAIL_SMTP_STARTTLS}
+      CORS_ORIGINS: ${CORS_ORIGINS}
+      UPLOAD_DIR: ${UPLOAD_DIR}
+      SPRING_PROFILES_ACTIVE: ${SPRING_PROFILES_ACTIVE}
+      AUTH_COOKIE_SECURE: ${AUTH_COOKIE_SECURE}
+      FLYWAY_VALIDATE_ON_MIGRATE: ${FLYWAY_VALIDATE_ON_MIGRATE}
+    volumes:
+      - uploads_data:${DATA_UPLOAD}
+    ports:
+      - '8080:8080'
+    networks:
+      - sigpap-network
+
+  sigpap-frontend:
+    build:
+      context: .
+      dockerfile: docker/frontend/Dockerfile
+    image: codekeys/sigpap-frontend:${APPLICATION_VERSION}
+    container_name: sigpap-frontend-${APPLICATION_VERSION}
+    restart: unless-stopped
+    depends_on:
+      - sigpap-backend
+    ports:
+      - '4200:80'
+    networks:
+      - sigpap-network
+
+  adminer:
+    image: adminer
+    container_name: sigpap-adminer
+    restart: unless-stopped
+    depends_on:
+      - mysql
+    ports:
+      - '8081:8080'
+    networks:
+      - sigpap-network
+
+networks:
+  sigpap-network:
+    driver: bridge
+
+volumes:
+  mysql_data:
+  uploads_data:

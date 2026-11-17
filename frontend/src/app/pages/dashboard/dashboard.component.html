@@ -1,0 +1,602 @@
+<app-page-header
+  title="Tableau de bord"
+  eyebrow="Vue d’ensemble"
+  description="Consultez les effectifs, les parcours et les indicateurs de l’Administration pénitentiaire."
+>
+  <span pageHeaderMeta>
+    @if (maj) {
+      Mis à jour à {{ maj | date: 'HH:mm:ss' }}
+    } @else {
+      Chargement des statistiques…
+    }
+  </span>
+  <button pageHeaderActions class="btn btn-light" [disabled]="chargement" (click)="charger()">
+    <i class="fa-solid fa-rotate" [class.fa-spin]="chargement"></i> Actualiser
+  </button>
+</app-page-header>
+
+@if (erreur) {
+  <div class="card-x text-center py-5">
+    <i class="fa-solid fa-plug-circle-exclamation fa-2x text-danger mb-2"></i>
+    <h5 class="fw-bold">Impossible de charger les statistiques</h5>
+    <p class="text-muted">Le serveur ne répond pas ou la requête a échoué.</p>
+    <button class="btn btn-primary" (click)="charger()">
+      <i class="fa-solid fa-rotate"></i> Réessayer
+    </button>
+  </div>
+} @else if (!d) {
+  <!-- Squelettes de chargement -->
+  @if (lent) {
+    <app-alert
+      class="d-block mb-3"
+      type="info"
+      titre="Chargement en cours"
+      message="Les données sont longues à charger, merci de patienter…"
+    />
+  }
+  <div class="row g-3">
+    @for (i of [1, 2, 3, 4, 5, 6]; track i) {
+      <div class="col-6 col-lg-4 col-xxl-2">
+        <div class="card-x"><div class="skeleton" style="height: 52px"></div></div>
+      </div>
+    }
+    <div class="col-xl-9">
+      <div class="row g-3">
+        <div class="col-lg-8">
+          <div class="card-x">
+            <div class="skeleton mb-3" style="height: 34px; width: 40%"></div>
+            <div class="skeleton" style="height: 240px"></div>
+          </div>
+        </div>
+        <div class="col-lg-4">
+          <div class="card-x">
+            <div class="skeleton mb-3" style="height: 20px; width: 60%"></div>
+            <div class="skeleton" style="height: 130px"></div>
+          </div>
+        </div>
+        @for (i of [1, 2, 3]; track i) {
+          <div class="col-lg-4">
+            <div class="card-x">
+              <div class="skeleton mb-3" style="height: 20px; width: 60%"></div>
+              <div class="skeleton" style="height: 160px"></div>
+            </div>
+          </div>
+        }
+      </div>
+    </div>
+    <div class="col-xl-3">
+      <div class="card-x">
+        <div class="skeleton mb-3" style="height: 20px; width: 50%"></div>
+        <div class="skeleton mb-2" style="height: 60px"></div>
+        <div class="skeleton" style="height: 200px"></div>
+      </div>
+    </div>
+  </div>
+} @else {
+  @if (isSelfDashboard) {
+    <div class="card-x p-4 p-md-5">
+      <div class="d-flex align-items-center gap-3 mb-3">
+        <span class="ico" style="background: rgba(139, 30, 30, 0.1); color: #8b1e1e"
+          ><i class="fa-solid fa-user"></i
+        ></span>
+        <div>
+          <h5 class="fw-bold mb-1">Bienvenue, {{ prenom }} {{ nom }}</h5>
+          <div class="card-sub">
+            Consultez votre dossier personnel et vos informations de carrière.
+          </div>
+        </div>
+      </div>
+      <div class="d-flex flex-wrap gap-2 mt-4">
+        <a class="btn btn-primary" [routerLink]="['/app/personnel', ownPersonnelSlug]"
+          ><i class="fa-solid fa-folder-open"></i> Consulter mon dossier</a
+        >
+        <a class="btn btn-light" routerLink="/app/profil"
+          ><i class="fa-solid fa-user-gear"></i> Consulter mon profil</a
+        >
+      </div>
+    </div>
+  } @else {
+    <div class="row g-3">
+      <!-- Indicateurs clés -->
+      @for (k of kpis; track k.label) {
+        <div class="col-6 col-lg-4 col-xxl-2">
+          <a class="card-x kpi h-100" [routerLink]="k.link" [queryParams]="k.params">
+            <span class="ico" [style.background]="k.bg" [style.color]="k.color"
+              ><i class="fa-solid" [ngClass]="k.icon"></i
+            ></span>
+            <span
+              ><span class="num">{{ k.value(d) }}</span
+              ><span class="card-sub d-block">{{ k.label }}</span></span
+            >
+          </a>
+        </div>
+      }
+
+      <!-- Effectif par corps -->
+      <div class="col-12 corps-panel">
+        <div class="card-x h-100">
+          <div class="d-flex justify-content-between align-items-start">
+            <div>
+              <div class="big-number">{{ d.total }}</div>
+              <div class="card-sub">Effectif total du personnel</div>
+            </div>
+            <div class="small">
+              <span class="me-3"
+                ><span class="legend-dot" style="background: #8b1e1e"></span>Hommes ({{
+                  d.hommes
+                }})</span
+              >
+              <span
+                ><span class="legend-dot" style="background: #ffd600"></span>Femmes ({{
+                  d.femmes
+                }})</span
+              >
+            </div>
+          </div>
+          @if (d.parCorps.length) {
+            <div class="corps-chart mt-2" [style.height.px]="corpsChartHeight">
+              <canvas #corpsChart></canvas>
+            </div>
+            <div class="card-sub text-center">Répartition par corps</div>
+            <div class="d-flex flex-wrap gap-2 mt-3" aria-label="Filtrer le personnel par corps">
+              @for (corps of d.parCorps; track corps.slug || corps.label) {
+                @if (corps.slug) {
+                  <a
+                    class="btn btn-sm btn-outline-primary"
+                    routerLink="/app/personnel"
+                    [queryParams]="{ corpsSlug: corps.slug }"
+                  >
+                    {{ corps.label }} ({{ corps.hommes + corps.femmes }})
+                  </a>
+                } @else {
+                  <span class="badge-soft"
+                    >{{ corps.label }} ({{ corps.hommes + corps.femmes }})</span
+                  >
+                }
+              }
+            </div>
+          } @else {
+            <app-alert
+              type="info"
+              titre="Liste vide"
+              message="Aucun corps à afficher pour le moment."
+            />
+          }
+        </div>
+      </div>
+      <div class="col-xl-9">
+        <div class="row g-3">
+          <!-- Jauge -->
+          <div class="col-lg-4">
+            <div class="card-x h-100">
+              <h6 class="card-title-x">Taux d'agents actifs</h6>
+              <div class="card-sub">Comptes actifs / effectif</div>
+              <div class="position-relative mx-auto mt-3" style="max-width: 230px; height: 130px">
+                <canvas #gauge></canvas>
+                <div class="position-absolute w-100 text-center" style="bottom: 0">
+                  <div class="big-number" style="font-size: 1.8rem">{{ pct(d.actifs) }}%</div>
+                </div>
+              </div>
+              <div class="card-sub text-center mt-2">{{ d.actifs }} actif(s) sur {{ d.total }}</div>
+              <hr class="my-3" />
+              <div class="d-flex justify-content-between small">
+                <span><i class="fa-solid fa-person text-danger"></i> Hommes</span
+                ><b>{{ pct(d.hommes) }}%</b>
+              </div>
+              <div class="d-flex justify-content-between small">
+                <span><i class="fa-solid fa-person-dress" style="color: #765b00"></i> Femmes</span
+                ><b>{{ pct(d.femmes) }}%</b>
+              </div>
+            </div>
+          </div>
+
+          <!-- Démographie -->
+          <div class="col-md-6 col-lg-4">
+            <div class="card-x h-100">
+              <h6 class="card-title-x">Tranches d'âge</h6>
+              <div class="card-sub">Selon la date de naissance</div>
+              <div style="height: 190px" class="mt-2"><canvas #ageChart></canvas></div>
+            </div>
+          </div>
+          <div class="col-md-6 col-lg-4">
+            <div class="card-x h-100">
+              <h6 class="card-title-x">Ancienneté</h6>
+              <div class="card-sub">Selon la date de recrutement</div>
+              <div style="height: 190px" class="mt-2"><canvas #ancChart></canvas></div>
+            </div>
+          </div>
+          <div class="col-lg-4">
+            <div class="card-x h-100">
+              <h6 class="card-title-x">Recrutements et mutations</h6>
+              <div class="card-sub">10 dernières années</div>
+              <div style="height: 190px" class="mt-2"><canvas #anneesChart></canvas></div>
+            </div>
+          </div>
+
+          <!-- Services, grades -->
+          <div class="col-md-6 col-lg-4">
+            <div class="card-x h-100">
+              <h6 class="card-title-x">Par type de service</h6>
+              <div class="card-sub">Affectation courante</div>
+              <div class="stack-bar my-3">
+                @for (t of d.parTypeService; track t.label; let i = $index) {
+                  <div [style.width.%]="pct(t.value)" [style.background]="C[i % C.length]"></div>
+                }
+              </div>
+              @for (t of d.parTypeService; track t.label; let i = $index) {
+                <div class="d-flex justify-content-between small mb-1">
+                  <span
+                    ><span class="legend-dot" [style.background]="C[i % C.length]"></span
+                    >{{ typeService(t.label) }}</span
+                  ><b>{{ t.value }} · {{ pct(t.value) }}%</b>
+                </div>
+              }
+            </div>
+          </div>
+          <div class="col-md-6 col-lg-4">
+            <div class="card-x h-100">
+              <h6 class="card-title-x">Répartition par grade</h6>
+              <div class="card-sub">Les plus représentés</div>
+              @for (g of d.parGrade; track g.label; let i = $index) {
+                <div class="mt-2">
+                  <div class="d-flex justify-content-between small">
+                    <span>{{ g.label }}</span><b>{{ g.value }}</b>
+                  </div>
+                  <div class="progress-x">
+                    <div [style.width.%]="pct(g.value)" [style.background]="C[i % C.length]"></div>
+                  </div>
+                </div>
+              } @empty {
+                <app-alert
+                  class="d-block mt-3"
+                  type="info"
+                  titre="Liste vide"
+                  message="Aucune donnée disponible pour le moment."
+                />
+              }
+            </div>
+          </div>
+          <div class="col-lg-4">
+            <div class="card-x h-100">
+              <h6 class="card-title-x">Effectif par service</h6>
+              <div class="card-sub">Les 8 plus importants</div>
+              @for (g of d.parService; track g.label; let i = $index) {
+                <div class="mt-2">
+                  <div class="d-flex justify-content-between small">
+                    <span class="text-truncate pe-2">{{ g.label }}</span><b>{{ g.value }}</b>
+                  </div>
+                  <div class="progress-x">
+                    <div
+                      [style.width.%]="pct(g.value)"
+                      [style.background]="C[(i + 2) % C.length]"
+                    ></div>
+                  </div>
+                </div>
+              } @empty {
+                <app-alert
+                  class="d-block mt-3"
+                  type="info"
+                  titre="Liste vide"
+                  message="Aucune donnée disponible pour le moment."
+                />
+              }
+            </div>
+          </div>
+
+          <!-- Formations et études -->
+          <div class="col-md-6 col-lg-4">
+            <div class="card-x h-100">
+              <h6 class="card-title-x">Formations les plus suivies</h6>
+              <div class="card-sub">Nombre de participations</div>
+              @for (g of d.topFormations; track g.label; let i = $index) {
+                <div class="mt-2">
+                  <div class="d-flex justify-content-between small">
+                    <span class="text-truncate pe-2">{{ g.label }}</span><b>{{ g.value }}</b>
+                  </div>
+                  <div class="progress-x">
+                    <div
+                      [style.width.%]="rel(g.value, d.topFormations)"
+                      style="background: #009245"
+                    ></div>
+                  </div>
+                </div>
+              } @empty {
+                <app-alert
+                  class="d-block mt-3"
+                  type="info"
+                  titre="Liste vide"
+                  message="Aucune formation enregistrée."
+                />
+              }
+            </div>
+          </div>
+          <div class="col-md-6 col-lg-4">
+            <div class="card-x h-100">
+              <h6 class="card-title-x">Études par niveau</h6>
+              <div class="card-sub">Études diplômantes suivies</div>
+              @if (d.etudesParNiveau.length) {
+                <div style="height: 170px" class="mt-2"><canvas #etudesChart></canvas></div>
+              } @else {
+                <app-alert
+                  class="d-block mt-3"
+                  type="info"
+                  titre="Liste vide"
+                  message="Aucune étude enregistrée."
+                />
+              }
+            </div>
+          </div>
+          <div class="col-lg-4">
+            <div class="card-x h-100">
+              <h6 class="card-title-x">Affectations</h6>
+              <div class="card-sub">Parcours professionnels</div>
+              <div class="row text-center mt-3 g-2">
+                <div class="col-6">
+                  <div class="ref-tile">
+                    <div class="num">{{ d.affectationsTotal }}</div>
+                    <div class="card-sub">Enregistrées</div>
+                  </div>
+                </div>
+                <div class="col-6">
+                  <div class="ref-tile">
+                    <div class="num" style="color: #009245">{{ d.affectationsEnCours }}</div>
+                    <div class="card-sub">En cours</div>
+                  </div>
+                </div>
+              </div>
+              <div class="progress-x mt-3">
+                <div
+                  [style.width.%]="
+                    d.affectationsTotal ? (d.affectationsEnCours * 100) / d.affectationsTotal : 0
+                  "
+                  style="background: #009245"
+                ></div>
+              </div>
+              <div class="card-sub mt-1">Part des affectations toujours en cours</div>
+            </div>
+          </div>
+
+          <!-- Suivi des retraites -->
+          <div class="col-12">
+            <div class="card-x">
+              <div class="section-head mb-2">
+                <h6 class="card-title-x mb-0">
+                  <i class="fa-solid fa-person-cane"></i> Suivi des retraites
+                </h6>
+                <a class="ap-link-soft" routerLink="/app/retraites"
+                  >Ouvrir le suivi <i class="fa-solid fa-arrow-right"></i
+                ></a>
+              </div>
+              <div class="row g-3 align-items-center">
+                <div class="col-lg-5">
+                  <div class="row g-2 text-center">
+                    <div class="col-6">
+                      <a class="ref-tile" routerLink="/app/retraites"
+                        ><div
+                          class="num"
+                          [style.color]="d.retraites.depassees ? '#E30613' : '#333'"
+                        >
+                          {{ d.retraites.depassees }}
+                        </div>
+                        <div class="card-sub">Âge de retraite dépassé</div></a
+                      >
+                    </div>
+                    <div class="col-6">
+                      <a class="ref-tile" routerLink="/app/retraites"
+                        ><div class="num" style="color: #765b00">{{ d.retraites.dans12Mois }}</div>
+                        <div class="card-sub">Dans les 12 mois</div></a
+                      >
+                    </div>
+                    <div class="col-6">
+                      <a class="ref-tile" routerLink="/app/retraites"
+                        ><div class="num">{{ d.retraites.dans24Mois }}</div>
+                        <div class="card-sub">Dans les 24 mois</div></a
+                      >
+                    </div>
+                    <div class="col-6">
+                      <a class="ref-tile" routerLink="/app/retraites"
+                        ><div class="num" style="color: #6c757d">{{ d.retraites.retraites }}</div>
+                        <div class="card-sub">Déjà retraités</div></a
+                      >
+                    </div>
+                  </div>
+                </div>
+                <div class="col-lg-7">
+                  <div style="height: 170px"><canvas #retraitesChart></canvas></div>
+                  <div class="card-sub text-center">Départs à la retraite prévus par année</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Référentiels -->
+          <div class="col-lg-8">
+            <div class="card-x h-100">
+              <h6 class="card-title-x">Référentiels</h6>
+              <div class="card-sub mb-2">Éléments paramétrés dans l'application</div>
+              <div class="row g-2">
+                @for (r of referentiels; track r.label) {
+                  <div class="col-4 col-md-2">
+                    <a class="ref-tile" [routerLink]="r.link">
+                      <i class="fa-solid" [ngClass]="r.icon" style="color: #8b1e1e"></i>
+                      <div class="num">{{ r.value(d) }}</div>
+                      <div class="card-sub">{{ r.label }}</div></a
+                    >
+                  </div>
+                }
+              </div>
+            </div>
+          </div>
+          <!-- Qualité des données -->
+          <div class="col-lg-4">
+            <div class="card-x h-100">
+              <h6 class="card-title-x">Qualité des données</h6>
+              <div class="card-sub mb-2">Agents à compléter</div>
+              @for (q of qualite; track q.label) {
+                <div
+                  class="d-flex justify-content-between align-items-center small py-1 border-bottom"
+                >
+                  <span
+                    ><i
+                      class="fa-solid"
+                      [ngClass]="q.icon"
+                      style="width: 1.2rem; color: #8a8a8a"
+                    ></i>
+                    {{ q.label }}</span
+                  >
+                  <span class="badge-soft" [ngClass]="q.value(d) === 0 ? 'green' : q.cls">{{
+                    q.value(d)
+                  }}</span>
+                </div>
+              }
+            </div>
+          </div>
+
+          <!-- Activité du jour (administrateurs uniquement) -->
+          @if (d.activite) {
+            <div class="col-12">
+              <div class="card-x">
+                <div class="section-head mb-2">
+                  <h6 class="card-title-x mb-0">
+                    <i class="fa-solid fa-clock-rotate-left"></i> Activité du jour
+                  </h6>
+                  <a class="ap-link-soft" routerLink="/app/journal"
+                    >Voir le journal <i class="fa-solid fa-arrow-right"></i
+                  ></a>
+                </div>
+                <div class="row g-2 text-center">
+                  <div class="col-4">
+                    <div class="ref-tile">
+                      <div class="num">{{ d.activite.actions }}</div>
+                      <div class="card-sub">Actions enregistrées</div>
+                    </div>
+                  </div>
+                  <div class="col-4">
+                    <div class="ref-tile">
+                      <div class="num" style="color: #009245">{{ d.activite.connexions }}</div>
+                      <div class="card-sub">Connexions réussies</div>
+                    </div>
+                  </div>
+                  <div class="col-4">
+                    <div class="ref-tile">
+                      <div
+                        class="num"
+                        [style.color]="d.activite.echecsConnexion ? '#E30613' : '#333'"
+                      >
+                        {{ d.activite.echecsConnexion }}
+                      </div>
+                      <div class="card-sub">Échecs de connexion</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          }
+        </div>
+      </div>
+
+      <!-- Colonne de droite -->
+      <div class="col-xl-3">
+        <div class="card-x mb-3">
+          <h6 class="card-title-x">Actions rapides</h6>
+          <div class="card-sub mb-3">Raccourcis</div>
+          <div class="row g-2 text-center">
+            @if (canManage) {
+              <div class="col-4">
+                <a class="quick-btn" routerLink="/app/personnel/nouveau"
+                  ><div class="ico"><i class="fa-solid fa-user-plus"></i></div>
+                  Nouvel agent</a
+                >
+              </div>
+            }
+            <div class="col-4">
+              <a class="quick-btn" routerLink="/app/personnel"
+                ><div class="ico"><i class="fa-solid fa-users"></i></div>
+                Personnel</a
+              >
+            </div>
+            <div class="col-4">
+              <a class="quick-btn" routerLink="/app/corps"
+                ><div class="ico"><i class="fa-solid fa-sitemap"></i></div>
+                Corps</a
+              >
+            </div>
+            <div class="col-4">
+              <a class="quick-btn" routerLink="/app/services"
+                ><div class="ico"><i class="fa-solid fa-building"></i></div>
+                Services</a
+              >
+            </div>
+            <div class="col-4">
+              <a class="quick-btn" routerLink="/app/grades"
+                ><div class="ico"><i class="fa-solid fa-award"></i></div>
+                Grades</a
+              >
+            </div>
+            <div class="col-4">
+              <a class="quick-btn" routerLink="/app/profil"
+                ><div class="ico"><i class="fa-solid fa-user-gear"></i></div>
+                Mon profil</a
+              >
+            </div>
+          </div>
+          <div class="mt-4 small fw-semibold">Derniers agents enregistrés</div>
+          <div class="d-flex flex-wrap gap-2 mt-2">
+            @for (a of d.derniersAgents; track a.slug; let i = $index) {
+              <a
+                class="text-decoration-none text-center"
+                style="width: 52px"
+                [routerLink]="['/app/personnel', a.slug]"
+                [title]="
+                  a.nomComplet +
+                  ' (créé par ' +
+                  ((a.creePar | auditUser | async) || 'Non renseigné') +
+                  ')'
+                "
+              >
+                <app-avatar
+                  [slug]="a.slug"
+                  [photo]="a.photo"
+                  [initials]="ini(a.nomComplet)"
+                  [color]="'c' + ((i % 5) + 1)"
+                />
+                <div style="font-size: 0.65rem" class="text-truncate text-muted mt-1">
+                  {{ a.nomComplet.split(' ')[0] }}
+                </div></a
+              >
+            } @empty {
+              <app-alert type="info" titre="Liste vide" message="Aucun agent enregistré." />
+            }
+          </div>
+        </div>
+
+        <div class="card-x">
+          <h6 class="card-title-x">Affectations récentes</h6>
+          <div class="card-sub mb-2">Dernières saisies</div>
+          @for (a of d.affectationsRecentes; track a.slug; let i = $index) {
+            <a
+              class="d-flex gap-2 align-items-center text-decoration-none text-reset py-2 border-bottom"
+              [routerLink]="['/app/personnel', a.personnelSlug]"
+            >
+              <span class="avatar sm" [ngClass]="'c' + ((i % 5) + 1)"
+                ><i class="fa-solid fa-right-left"></i
+              ></span>
+              <div class="flex-grow-1" style="min-width: 0">
+                <div class="small fw-semibold text-truncate">{{ a.agent }}</div>
+                <div class="text-muted text-truncate" style="font-size: 0.72rem">
+                  {{ a.service }}
+                </div>
+              </div>
+              <div class="text-end" style="font-size: 0.7rem">
+                <span class="badge-soft green">{{ typeAff(a.type) }}</span>
+                <div class="text-muted mt-1">{{ fmt(a.date) }}</div>
+              </div>
+            </a>
+          } @empty {
+            <app-alert type="info" titre="Liste vide" message="Aucune affectation enregistrée." />
+          }
+        </div>
+      </div>
+    </div>
+  }
+}

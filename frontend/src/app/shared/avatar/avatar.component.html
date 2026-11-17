@@ -1,0 +1,22 @@
+@if (size === 'card') {
+  @if (src) {
+    <img [src]="src" class="avatar-card" [alt]="alternative" loading="lazy" decoding="async" />
+  } @else {
+    <div class="avatar-card ph" [ngClass]="color" aria-label="Photo non disponible">
+      <i class="fa-solid fa-user"></i>
+    </div>
+  }
+} @else {
+  @if (src) {
+    <img
+      [src]="src"
+      class="avatar-img"
+      [ngClass]="size"
+      [alt]="alternative"
+      loading="lazy"
+      decoding="async"
+    />
+  } @else {
+    <span class="avatar" [ngClass]="size + ' ' + color">{{ ini }}</span>
+  }
+}

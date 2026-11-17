@@ -1,0 +1,393 @@
+<app-page-header
+  [title]="id ? 'Modifier l’agent' : 'Nouvel agent'"
+  eyebrow="Gestion du personnel"
+  description="Renseignez l’identité, la situation professionnelle et les informations du compte."
+>
+  <a
+    pageHeaderActions
+    class="btn btn-light"
+    [routerLink]="id ? ['/app/personnel', id] : ['/app/personnel']"
+    ><i class="fa-solid fa-arrow-left"></i> Retour</a
+  >
+</app-page-header>
+<div class="card-x personnel-form-card">
+  <p class="form-text">Les champs marqués d’un astérisque (*) sont obligatoires.</p>
+  <div class="row g-3">
+    <div class="col-12 d-flex align-items-center gap-3">
+      @if (preview) {
+        <img
+          [src]="preview"
+          class="avatar-img xl"
+          alt="Aperçu de la photo de l’agent"
+          decoding="async"
+        />
+      } @else {
+        <app-avatar [slug]="id" [photo]="m.photo" [nom]="m.nom" [prenom]="m.prenom" size="xl" />
+      }
+      <div>
+        <label class="form-label small fw-semibold mb-1"
+          ><i class="fa-solid fa-camera"></i> Photo de l'agent</label
+        >
+        <input
+          type="file"
+          class="form-control form-control-sm"
+          accept=".jpg,.jpeg,.png"
+          (change)="choisirPhoto($event)"
+          title="Choisir un fichier à joindre"
+        />
+        <div class="form-text">
+          JPG ou PNG, 3 Mo maximum. Elle apparaît dans les listes, la fiche et la carte de service.
+        </div>
+      </div>
+    </div>
+
+    <div class="col-md-4">
+      <label class="form-label small fw-semibold">Matricule *</label>
+      <input
+        class="form-control"
+        [class.is-invalid]="afficher('matricule')"
+        [(ngModel)]="m.matricule"
+        (blur)="t('matricule')"
+        maxlength="30"
+        placeholder="Ex. : AP001"
+      />
+      @if (afficher('matricule')) {
+        <div class="invalid-feedback">{{ e['matricule'] }}</div>
+      }
+    </div>
+    <div class="col-md-4">
+      <label class="form-label small fw-semibold">Prénom *</label>
+      <input
+        class="form-control"
+        [class.is-invalid]="afficher('prenom')"
+        [(ngModel)]="m.prenom"
+        (blur)="t('prenom')"
+        maxlength="100"
+        placeholder="Ex. : Aminata"
+      />
+      @if (afficher('prenom')) {
+        <div class="invalid-feedback">{{ e['prenom'] }}</div>
+      }
+    </div>
+    <div class="col-md-4">
+      <label class="form-label small fw-semibold">Nom *</label>
+      <input
+        class="form-control"
+        [class.is-invalid]="afficher('nom')"
+        [(ngModel)]="m.nom"
+        (blur)="t('nom')"
+        maxlength="100"
+        placeholder="Ex. : Traoré"
+      />
+      @if (afficher('nom')) {
+        <div class="invalid-feedback">{{ e['nom'] }}</div>
+      }
+    </div>
+    <div class="col-md-3">
+      <label class="form-label small fw-semibold">Sexe *</label>
+      <select
+        class="form-select"
+        [class.is-invalid]="afficher('sexe')"
+        [(ngModel)]="m.sexe"
+        (blur)="t('sexe')"
+      >
+        <option [ngValue]="null">Choisir le sexe</option>
+        <option value="M">Masculin</option>
+        <option value="F">Féminin</option>
+      </select>
+      @if (afficher('sexe')) {
+        <div class="invalid-feedback">{{ e['sexe'] }}</div>
+      }
+    </div>
+    <div class="col-md-3">
+      <label class="form-label small fw-semibold">Date de naissance</label>
+      <input
+        type="date"
+        class="form-control"
+        [class.is-invalid]="afficher('dateNaissance')"
+        [(ngModel)]="m.dateNaissance"
+        (blur)="t('dateNaissance')"
+        placeholder="jj/mm/aaaa"
+        title="Choisir une date (jour/mois/année)"
+      />
+      <div class="form-text">Choisissez la date dans le calendrier.</div>
+      @if (afficher('dateNaissance')) {
+        <div class="invalid-feedback">{{ e['dateNaissance'] }}</div>
+      }
+    </div>
+    <div class="col-md-3">
+      <label class="form-label small fw-semibold">Groupe sanguin</label>
+      <select class="form-select" [(ngModel)]="m.groupeSanguin">
+        <option [ngValue]="null">Choisir un groupe</option>
+        @for (g of ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-']; track g) {
+          <option [value]="g">{{ g }}</option>
+        }
+      </select>
+    </div>
+    <div class="col-md-6">
+      <label class="form-label small fw-semibold">Lieu de naissance</label>
+      <input
+        class="form-control"
+        [(ngModel)]="m.lieuNaissance"
+        maxlength="150"
+        placeholder="Ex. : Bamako"
+      />
+    </div>
+    <div class="col-md-4">
+      <label class="form-label small fw-semibold">Téléphone</label>
+      <input
+        class="form-control"
+        [class.is-invalid]="afficher('telephone')"
+        [(ngModel)]="m.telephone"
+        (blur)="t('telephone')"
+        maxlength="30"
+        placeholder="+223 70 00 00 00"
+      />
+      @if (afficher('telephone')) {
+        <div class="invalid-feedback">{{ e['telephone'] }}</div>
+      }
+    </div>
+    <div class="col-md-4">
+      <label class="form-label small fw-semibold">E-mail {{ !id ? '*' : '' }}</label>
+      <input
+        type="email"
+        class="form-control"
+        [class.is-invalid]="afficher('email')"
+        [(ngModel)]="m.email"
+        (blur)="t('email')"
+        maxlength="150"
+        placeholder="Ex. : prenom.nom@exemple.ml"
+      />
+      @if (afficher('email')) {
+        <div class="invalid-feedback">{{ e['email'] }}</div>
+      }
+    </div>
+    <div class="col-md-4">
+      <label class="form-label small fw-semibold">Contact d’urgence</label>
+      <input
+        class="form-control"
+        [class.is-invalid]="afficher('contactUrgence')"
+        [(ngModel)]="m.contactUrgence"
+        (blur)="t('contactUrgence')"
+        maxlength="150"
+        placeholder="Numéro de téléphone"
+      />
+      @if (afficher('contactUrgence')) {
+        <div class="invalid-feedback">{{ e['contactUrgence'] }}</div>
+      }
+    </div>
+    <div class="col-md-4">
+      <label class="form-label small fw-semibold">Date de recrutement</label>
+      <input
+        type="date"
+        class="form-control"
+        [class.is-invalid]="afficher('dateRecrutement')"
+        [(ngModel)]="m.dateRecrutement"
+        (blur)="t('dateRecrutement')"
+        title="Sélectionner la date de recrutement"
+        placeholder="jj/mm/aaaa"
+      />
+      <div class="form-text">Choisissez la date dans le calendrier.</div>
+      @if (afficher('dateRecrutement')) {
+        <div class="invalid-feedback">{{ e['dateRecrutement'] }}</div>
+      }
+    </div>
+    <div class="col-md-4">
+      <label class="form-label small fw-semibold">Date de titularisation</label>
+      <input
+        type="date"
+        class="form-control"
+        [class.is-invalid]="afficher('dateTitularisation')"
+        [(ngModel)]="m.dateTitularisation"
+        (blur)="t('dateTitularisation')"
+        title="Date de titularisation"
+        placeholder="jj/mm/aaaa"
+      />
+      <div class="form-text">Date officielle de titularisation, si connue.</div>
+      @if (afficher('dateTitularisation')) {
+        <div class="invalid-feedback">{{ e['dateTitularisation'] }}</div>
+      }
+    </div>
+    <div class="col-12">
+      <label class="form-label small fw-semibold">Adresse</label>
+      <input
+        class="form-control"
+        [(ngModel)]="m.adresse"
+        maxlength="255"
+        placeholder="Ex. : Quartier, rue, commune"
+      />
+    </div>
+
+    <div class="col-12">
+      <hr class="my-1" />
+      <div class="small fw-bold text-uppercase" style="color: var(--ap-rouge-fonce)">
+        Situation professionnelle
+      </div>
+    </div>
+    <div class="col-12">
+      <label class="form-label small fw-semibold">Arrêté d’intégration {{ !id ? '*' : '' }}</label>
+      <select
+        class="form-select"
+        [class.is-invalid]="afficher('arreteIntegration')"
+        [(ngModel)]="m.arreteIntegration"
+        [compareWith]="sameSlug"
+        (blur)="t('arreteIntegration')"
+      >
+        <option [ngValue]="null">Choisir un arrêté d’intégration</option>
+        @for (arrete of arretesIntegration; track arrete.slug) {
+          <option [ngValue]="arrete">{{ arrete.reference }}</option>
+        }
+      </select>
+      @if (afficher('arreteIntegration')) {
+        <div class="invalid-feedback">{{ e['arreteIntegration'] }}</div>
+      }
+      @if (m.arreteIntegration?.fichier) {
+        <div class="form-text">
+          Fichier associé : {{ m.arreteIntegration.fichier.split('/').pop() }}
+          <button type="button" class="btn btn-link btn-sm p-0 ms-1" (click)="telechargerArrete()">
+            <i class="fa-solid fa-download"></i> Télécharger
+          </button>
+        </div>
+      } @else {
+        <div class="form-text">
+          La référence et le fichier sont gérés dans le module Arrêtés d’intégration.
+        </div>
+      }
+    </div>
+    @if (m.surveillant) {
+      <div class="col-md-6">
+        <label class="form-label small fw-semibold">Grade actuel</label>
+        <select class="form-select" [(ngModel)]="m.gradeActuel" [compareWith]="sameSlug">
+          <option [ngValue]="null">Choisir un grade</option>
+          @for (g of grades; track g.slug) {
+            <option [ngValue]="g">{{ g.nom }} ({{ g.corps?.nom }})</option>
+          }
+        </select>
+        <div class="form-text">Un changement de grade est ajouté à l'historique.</div>
+      </div>
+    } @else {
+      <div class="col-md-6">
+        <label class="form-label small fw-semibold">Corps *</label>
+        <select
+          class="form-select"
+          [class.is-invalid]="afficher('corpsActuel')"
+          [(ngModel)]="m.corpsActuel"
+          [compareWith]="sameSlug"
+          (blur)="t('corpsActuel')"
+        >
+          <option [ngValue]="null">Choisir un corps</option>
+          @for (c of corps; track c.slug) {
+            <option [ngValue]="c">{{ c.nom }}</option>
+          }
+        </select>
+        @if (afficher('corpsActuel')) {
+          <div class="invalid-feedback">{{ e['corpsActuel'] }}</div>
+        }
+        <div class="form-text">
+          Un agent non surveillant appartient à un corps, sans porter de grade.
+        </div>
+      </div>
+    }
+    <div class="col-md-6">
+      <label class="form-label small fw-semibold">Service d'affectation actuel</label>
+      <select class="form-select" [(ngModel)]="m.serviceCourant" [compareWith]="sameSlug">
+        <option [ngValue]="null">Choisir un service</option>
+        @for (s of services; track s.slug) {
+          <option [ngValue]="s">{{ s.nom }}</option>
+        }
+      </select>
+    </div>
+    <div class="col-md-3">
+      <div class="form-check form-switch mt-4">
+        <input
+          class="form-check-input"
+          type="checkbox"
+          id="surv"
+          [ngModel]="m.surveillant"
+          (ngModelChange)="changerSurveillant($event)"
+        /><label class="form-check-label" for="surv">Personnel surveillant</label>
+      </div>
+    </div>
+
+    <div class="col-12">
+      <hr class="my-1" />
+      <div class="small fw-bold text-uppercase" style="color: var(--ap-rouge-fonce)">
+        Compte de connexion
+      </div>
+    </div>
+    @if (id) {
+      <div class="col-md-6">
+        <label class="form-label small fw-semibold">Réinitialiser le mot de passe</label>
+        <input
+          type="password"
+          class="form-control"
+          [class.is-invalid]="afficher('motDePasse')"
+          [(ngModel)]="m.motDePasse"
+          (blur)="t('motDePasse')"
+          autocomplete="new-password"
+          placeholder="Laisser vide pour ne pas le modifier"
+        />
+        @if (afficher('motDePasse')) {
+          <div class="invalid-feedback">{{ e['motDePasse'] }}</div>
+        } @else {
+          <div class="form-text">
+            Un mot de passe saisi ici sera temporaire et devra être changé à la prochaine connexion.
+          </div>
+        }
+      </div>
+    } @else {
+      <div class="col-md-6">
+        <div class="account-mail-note">
+          <span class="account-mail-icon"><i class="fa-solid fa-envelope-circle-check"></i></span>
+          <span
+            ><b>Accès envoyé par e-mail</b
+            ><small
+              >Un mot de passe temporaire sera généré automatiquement et envoyé à l'adresse
+              renseignée. L'agent devra le changer à sa première connexion.</small
+            ></span
+          >
+        </div>
+      </div>
+    }
+    @if (canAssignRole) {
+      <div class="col-md-4">
+        <label class="form-label small fw-semibold">Rôle *</label>
+        <select
+          class="form-select"
+          [class.is-invalid]="afficher('role')"
+          [(ngModel)]="m.role"
+          (blur)="t('role')"
+          [compareWith]="sameSlug"
+        >
+          <option [ngValue]="null">Choisir un rôle</option>
+          @for (r of roles; track r.slug) {
+            <option [ngValue]="r">{{ roleLabel(r.nom) }}</option>
+          }
+        </select>
+        @if (afficher('role')) {
+          <div class="invalid-feedback">{{ e['role'] }}</div>
+        }
+      </div>
+    }
+    <div class="col-md-4">
+      <div class="form-check form-switch mt-4">
+        <input class="form-check-input" type="checkbox" id="act" [(ngModel)]="m.actif" /><label
+          class="form-check-label"
+          for="act"
+          >Compte actif</label
+        >
+      </div>
+    </div>
+  </div>
+  <div class="d-flex justify-content-end align-items-center gap-3 mt-4">
+    @if (!valid) {
+      <span class="small text-muted"
+        ><i class="fa-solid fa-circle-info"></i> {{ nbErreurs }} champ(s) à corriger. Renseignez les
+        champs obligatoires et corrigez les erreurs signalées.</span
+      >
+    }
+    <button class="btn btn-primary px-4" [disabled]="saving || !valid" (click)="save()">
+      <i class="fa-solid fa-check"></i> Enregistrer
+    </button>
+  </div>
+</div>

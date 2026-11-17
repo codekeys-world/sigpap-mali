@@ -1,0 +1,250 @@
+<div class="home-page">
+  <header class="home-header">
+    <div class="container home-nav">
+      <a class="home-brand" href="#top" aria-label="Accueil SIGPAP-MALI">
+        <img
+          width="48"
+          height="62"
+          decoding="async"
+          src="assets/logo-small.webp"
+          alt="Emblème de l’Administration pénitentiaire du Mali"
+        />
+        <span><b>SIGPAP-MALI</b><small>Administration Pénitentiaire</small></span>
+      </a>
+      <nav class="home-links d-none d-md-flex" aria-label="Navigation principale">
+        <a href="#missions">Missions</a><a href="#services">Fonctionnalités</a
+        ><a href="#organisation">Organisation</a>
+      </nav>
+      <a class="btn home-login" [routerLink]="auth.isLoggedIn() ? '/app/dashboard' : '/login'">
+        {{ auth.isLoggedIn() ? 'Mon espace' : 'Connexion' }}
+        <i class="fa-solid fa-arrow-right ms-2"></i>
+      </a>
+    </div>
+  </header>
+
+  <main id="top">
+    <section class="home-hero">
+      <div class="home-hero-grid"></div>
+      <div class="container home-hero-inner">
+        <div class="home-hero-copy">
+          <div class="home-kicker"><span></span> Administration Pénitentiaire</div>
+          <h1>Les parcours<br />professionnels,<br /><em>mieux accompagnés.</em></h1>
+          <p>
+            Une plateforme de gestion des ressources humaines conçue pour suivre les agents, leurs
+            affectations et l'évolution de leur carrière dans un espace unique.
+          </p>
+          <div class="home-actions">
+            <a
+              class="btn home-primary"
+              [routerLink]="auth.isLoggedIn() ? '/app/dashboard' : '/login'"
+            >
+              {{ auth.isLoggedIn() ? 'Ouvrir le tableau de bord' : 'Accéder à mon espace' }}
+              <i class="fa-solid fa-arrow-right ms-2"></i>
+            </a>
+            <a class="home-secondary" href="#services"
+              ><span class="home-play"><i class="fa-solid fa-chevron-down"></i></span> Découvrir la
+              plateforme</a
+            >
+          </div>
+          <div class="home-motto">
+            <span></span> Sécurité <i>·</i> Réinsertion <i>·</i> Humanité
+          </div>
+        </div>
+        <div class="home-hero-art" aria-label="Emblème AP et aperçu des dossiers">
+          <div class="home-orbit orbit-one"></div>
+          <div class="home-orbit orbit-two"></div>
+          <div class="home-logo-card">
+            <div class="home-logo-caption"><span class="home-live-dot"></span> ESPACE RH · AP</div>
+            <img
+              src="assets/logo.webp"
+              width="420"
+              height="539"
+              fetchpriority="high"
+              decoding="async"
+              alt="Emblème de l'Administration Pénitentiaire"
+            />
+            <div class="home-logo-name">Administration Pénitentiaire</div>
+          </div>
+          <div class="home-float-card float-career">
+            <span class="float-icon"><i class="fa-solid fa-arrow-trend-up"></i></span
+            ><span><b>Carrière</b><small>Un parcours, étape par étape</small></span>
+          </div>
+          <div class="home-float-card float-record">
+            <span class="float-icon"><i class="fa-solid fa-folder-open"></i></span
+            ><span><b>Dossier agent</b><small>Informations réunies</small></span
+            ><i class="fa-solid fa-circle-check float-check"></i>
+          </div>
+          <div class="home-art-label">Un service public<br /><b>au cœur de l'humain</b></div>
+        </div>
+      </div>
+      <div class="home-bottom-ribbon"><span></span><span></span><span></span></div>
+    </section>
+
+    <section class="home-highlights container" aria-label="Repères de la plateforme">
+      <div class="home-highlight">
+        <span class="highlight-icon"><i class="fa-solid fa-users"></i></span
+        ><span
+          ><b>Gestion centralisée</b><small>Les dossiers du personnel au même endroit</small></span
+        >
+      </div>
+      <div class="home-highlight">
+        <span class="highlight-icon"><i class="fa-solid fa-timeline"></i></span
+        ><span><b>Suivi de carrière</b><small>Grades, formations et affectations</small></span>
+      </div>
+      <div class="home-highlight">
+        <span class="highlight-icon"><i class="fa-solid fa-shield-halved"></i></span
+        ><span><b>Accès structuré</b><small>Des espaces adaptés aux responsabilités</small></span>
+      </div>
+    </section>
+
+    <section class="home-section container" id="services">
+      <div class="home-section-heading">
+        <span class="home-eyebrow">La plateforme</span>
+        <h2>Tout le suivi RH,<br /><em>dans un même espace.</em></h2>
+        <p>
+          Des outils simples pour gérer les informations du quotidien et garder une vision claire de
+          chaque parcours.
+        </p>
+      </div>
+      <div class="home-feature-grid">
+        @for (f of features; track f.title) {
+          <article class="home-feature-card">
+            <span class="feature-icon" [ngClass]="f.c"
+              ><i class="fa-solid" [ngClass]="f.icon"></i
+            ></span>
+            <div class="feature-index">0{{ $index + 1 }}</div>
+            <h3>{{ f.title }}</h3>
+            <p>{{ f.text }}</p>
+            <span class="feature-rule"></span>
+          </article>
+        }
+      </div>
+    </section>
+
+    <section class="home-process" id="missions">
+      <div class="container home-process-inner">
+        <div class="process-copy">
+          <span class="home-eyebrow">Une vision complète</span>
+          <h2>Du dossier individuel<br />à la <em>vue d'ensemble.</em></h2>
+          <p>
+            Chaque information s'inscrit dans le parcours de l'agent. Les équipes peuvent consulter
+            les éléments utiles, suivre les évolutions et produire des états selon leurs besoins.
+          </p>
+          <a class="home-text-link" [routerLink]="auth.isLoggedIn() ? '/app/dashboard' : '/login'"
+            >{{ auth.isLoggedIn() ? 'Accéder au tableau de bord' : 'Découvrir mon espace' }}
+            <i class="fa-solid fa-arrow-right"></i
+          ></a>
+        </div>
+        <div class="process-list">
+          <div class="process-item">
+            <span>01</span>
+            <div>
+              <h3>Constituer</h3>
+              <p>Créer les dossiers ou importer les données du personnel.</p>
+            </div>
+            <i class="fa-solid fa-user-plus"></i>
+          </div>
+          <div class="process-item">
+            <span>02</span>
+            <div>
+              <h3>Documenter</h3>
+              <p>Renseigner les grades, études, formations et affectations.</p>
+            </div>
+            <i class="fa-solid fa-folder-tree"></i>
+          </div>
+          <div class="process-item">
+            <span>03</span>
+            <div>
+              <h3>Piloter</h3>
+              <p>Rechercher, filtrer, consulter l'historique et exporter les listes.</p>
+            </div>
+            <i class="fa-solid fa-chart-column"></i>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="home-section container" id="organisation">
+      <div class="home-access-panel">
+        <div class="access-intro">
+          <span class="home-eyebrow">Une organisation maîtrisée</span>
+          <h2>Chaque équipe dispose<br />de son <em>périmètre.</em></h2>
+          <p>
+            Les accès et les fonctions s'adaptent au rôle de chaque utilisateur afin de faciliter le
+            travail des équipes.
+          </p>
+          <div class="access-note">
+            <i class="fa-solid fa-clipboard-check"></i
+            ><span
+              >Les créations et modifications sont historisées dans le journal d'activité.</span
+            >
+          </div>
+        </div>
+        <div class="access-roles">
+          <div>
+            <span class="role-mark role-bordeaux"><i class="fa-solid fa-user-shield"></i></span
+            ><span
+              ><b>Administration</b
+              ><small>Gestion des rôles, autorisations et référentiels</small></span
+            ><i class="fa-solid fa-arrow-up-right-from-square role-arrow"></i>
+          </div>
+          <div>
+            <span class="role-mark role-green"><i class="fa-solid fa-people-group"></i></span
+            ><span><b>Gestion RH</b><small>Gestion du personnel et suivi des dossiers</small></span
+            ><i class="fa-solid fa-arrow-up-right-from-square role-arrow"></i>
+          </div>
+          <div>
+            <span class="role-mark role-gold"><i class="fa-solid fa-location-dot"></i></span
+            ><span
+              ><b>Directions et établissements</b
+              ><small>Consultation selon le périmètre de service</small></span
+            ><i class="fa-solid fa-arrow-up-right-from-square role-arrow"></i>
+          </div>
+          <div>
+            <span class="role-mark role-red"><i class="fa-solid fa-eye"></i></span
+            ><span><b>Consultation</b><small>Accès aux données et exports autorisés</small></span
+            ><i class="fa-solid fa-arrow-up-right-from-square role-arrow"></i>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="home-cta-wrap container">
+      <div class="home-cta">
+        <div>
+          <span class="home-eyebrow">SIGPAP-MALI · Ressources humaines</span>
+          <h2>Prêt à poursuivre&nbsp;?</h2>
+          <p>Retrouvez votre espace de travail et les outils associés à votre rôle.</p>
+        </div>
+        <a class="btn home-primary" [routerLink]="auth.isLoggedIn() ? '/app/dashboard' : '/login'"
+          >{{ auth.isLoggedIn() ? 'Ouvrir mon espace' : 'Se connecter' }}
+          <i class="fa-solid fa-arrow-right ms-2"></i
+        ></a>
+        <div class="cta-watermark">AP</div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="home-footer">
+    <div class="container footer-inner">
+      <a class="home-brand footer-brand" href="#top"
+        ><img
+          width="48"
+          height="62"
+          decoding="async"
+          src="assets/logo-small.webp"
+          alt="Emblème de l’Administration pénitentiaire du Mali"
+        /><span><b>SIGPAP-MALI</b><small>Administration Pénitentiaire</small></span></a
+      >
+      <div class="footer-copy">
+        Sécurité · Réinsertion · Humanité<br /><small
+          >SIGPAP-MALI · Gestion du personnel de l’AP</small
+        >
+      </div>
+      <a class="footer-top" href="#top" aria-label="Retour en haut"
+        ><i class="fa-solid fa-arrow-up"></i
+      ></a>
+    </div>
+    <div class="tricolor"></div>
+  </footer>
+</div>

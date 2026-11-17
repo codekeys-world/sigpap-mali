@@ -1,0 +1,203 @@
+<div class="modal-x" (mousedown)="$event.target === $event.currentTarget && closed.emit()">
+  <div class="modal-dialog-x wide card-x">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+      <div>
+        <h5 class="fw-bold mb-0"><i class="fa-solid fa-id-card"></i> Carte de service</h5>
+        <div class="card-sub">{{ a.prenom }} {{ a.nom }} · {{ a.matricule }}</div>
+      </div>
+      <button class="btn-close" (click)="closed.emit()"></button>
+    </div>
+    @if (loadingDetail) {
+      <app-alert
+        type="info"
+        titre="Chargement"
+        message="Chargement des informations de la carte."
+      />
+    }
+    @if (detailError) {
+      <app-alert
+        type="error"
+        titre="Carte indisponible"
+        message="Les informations de l'agent ne sont pas disponibles."
+      />
+    }
+    <p class="d-sm-none form-text">
+      Faites glisser les cartes horizontalement pour voir le recto et le verso.
+    </p>
+    <div
+      class="cartes"
+      #zone
+      tabindex="0"
+      aria-label="Aperçu du recto et du verso de la carte de service"
+      style="background: #f4f2f2; border-radius: 16px; padding: 18px"
+    >
+      <div class="card-pro preview front-card">
+        <div class="front-top">
+          <div class="front-country">
+            <strong>REPUBLIQUE DU MALI</strong><small>UN PEUPLE - UN BUT - UNE FOI</small>
+          </div>
+          <i class="mali-flag" aria-label="Drapeau du Mali"><i></i><i></i><i></i></i>
+          <img
+            class="front-logo"
+            [src]="logo"
+            alt="Emblème de l’Administration pénitentiaire du Mali"
+          />
+        </div>
+        <div class="front-band">ADMINISTRATION PENITENTIAIRE · CARTE PROFESSIONNELLE</div>
+        <div class="front-main">
+          @if (src) {
+            <img class="cp-photo" [src]="src" [alt]="'Photo de ' + a.prenom + ' ' + a.nom" />
+          } @else {
+            <div class="cp-photo">{{ ini }}</div>
+          }
+          <div class="cp-info">
+            <div class="cp-name">
+              {{ a.prenom || agent.prenom }}
+              {{ a.nom || agent.nom || 'Nom indisponible' | uppercase }}
+            </div>
+            <div class="cp-field">
+              <span class="cp-lbl">Matricule</span
+              ><span class="cp-val">{{ a.matricule || 'Non renseigné' }}</span>
+            </div>
+            <div class="cp-field">
+              <span class="cp-lbl">Date de naissance</span
+              ><span class="cp-val">{{ naissance }}</span>
+            </div>
+            <div class="cp-field">
+              <span class="cp-lbl">Groupe sanguin</span
+              ><span class="cp-val">{{ a.groupeSanguin || 'Non renseigné' }}</span>
+            </div>
+            @if (!a.surveillant) {
+              <div class="cp-field">
+                <span class="cp-lbl">Corps</span
+                ><span class="cp-val">{{
+                  a.corpsActuel?.nom || a.gradeActuel?.corps?.nom || 'Non renseigné'
+                }}</span>
+              </div>
+            }
+            @if (a.surveillant) {
+              <div class="cp-field">
+                <span class="cp-lbl">Grade</span
+                ><span class="cp-val">{{ a.gradeActuel?.nom || 'Non renseigné' }}</span>
+              </div>
+            }
+            <div class="cp-field fonction">
+              <span class="cp-lbl">Fonction</span
+              ><span class="cp-val">{{ a.fonction || 'Non renseignée' }}</span>
+            </div>
+            <div class="cp-field service">
+              <span class="cp-lbl">Service</span
+              ><span class="cp-val">{{ a.serviceCourant?.nom || 'Non renseigné' }}</span>
+            </div>
+          </div>
+        </div>
+        <div class="front-bottom">
+          <span class="front-date">Délivrée le {{ aujourdhui }}</span
+          ><span class="front-card-number">N° {{ a.numeroCarte }}</span>
+        </div>
+        <div class="front-signature">
+          @if (signatureUrl) {
+            <img [src]="signatureUrl" alt="Signature du Directeur" />
+          } @else {
+            <i class="signature-line"></i>
+          }
+          <input
+            class="front-director-name"
+            type="text"
+            placeholder="Nom du Directeur"
+            aria-label="Nom du Directeur sur la carte"
+            [value]="nomDirecteur"
+            [readonly]="!canUploadSignature"
+            maxlength="120"
+            required
+            [attr.aria-invalid]="!nomDirecteurValide"
+            (input)="modifierNomDirecteur($any($event.target).value)"
+          />
+        </div>
+        <div class="front-tricolor"></div>
+      </div>
+      <div class="card-pro verso preview">
+        <div class="back-head">ADMINISTRATION PENITENTIAIRE</div>
+        <div class="back-center">
+          <img
+            class="back-logo"
+            [src]="logo"
+            alt="Emblème de l’Administration pénitentiaire du Mali"
+          />
+          <div class="back-copy">
+            Cette carte est nominative et demeure la propriété de l'Administration Pénitentiaire.
+            Elle doit être présentée à toute réquisition. En cas de perte, la remettre au service
+            émetteur.
+          </div>
+          <div class="back-copy back-passage">
+            <strong
+              >Les autorités, tant civiles que militaires, sont priées de laisser librement circuler
+              et d'apporter toutes assistances et protections nécessaires au porteur de la présente
+              carte en cas de besoin.</strong
+            >
+          </div>
+        </div>
+        <div class="back-qr">
+          @if (qrSrc) {
+            <img [src]="qrSrc" alt="QR code unique de la carte" />
+          }
+          <span>N° {{ a.numeroCarte }}</span>
+        </div>
+        <div class="back-emergency">
+          <b>Contact d’urgence</b><span>{{ a.contactUrgence || 'Non renseigné' }}</span>
+        </div>
+        <div class="front-tricolor"></div>
+      </div>
+    </div>
+    @if (canUploadSignature) {
+      <div class="signature-upload-tools">
+        <label class="small fw-semibold" for="signature-directeur">Signature du Directeur</label>
+        <input
+          id="signature-directeur"
+          type="file"
+          class="form-control form-control-sm"
+          accept="image/png,image/jpeg"
+          (change)="uploaderSignature($event)"
+          title="Choisir un fichier à joindre"
+        />
+        <span class="form-text"
+          >PNG transparent conseillé (2 Mo maximum). Le nom sera affiché sur les prochaines
+          cartes.</span
+        >
+      </div>
+    }
+    @if (canUploadSignature && !nomDirecteurValide) {
+      <p class="form-text text-danger">Renseignez le nom du Directeur (120 caractères maximum).</p>
+    }
+    <div class="d-flex flex-wrap justify-content-end gap-2 mt-3">
+      <span class="small text-muted me-auto align-self-center"
+        ><i class="fa-solid fa-circle-info"></i> CR80 · 85,6 × 54 mm · 100 % · fonds actives ·
+        duplex bord long.</span
+      >
+      @if (canPdf) {
+        <button
+          class="btn btn-outline-primary"
+          [disabled]="loadingDetail || !detailReady || !nomDirecteurValide"
+          (click)="pdf()"
+        >
+          <i class="fa-solid fa-file-pdf"></i> PDF recto-verso
+        </button>
+      }
+      @if (signatureUrl) {
+        <button class="btn btn-light" (click)="telechargerSignature()">
+          <i class="fa-solid fa-download"></i> Télécharger la signature
+        </button>
+      }
+      <button
+        class="btn btn-primary"
+        [disabled]="loadingDetail || !detailReady"
+        (click)="imprimer()"
+      >
+        <i class="fa-solid fa-print"></i> Imprimer
+      </button>
+      <button class="btn btn-light" (click)="closed.emit()">
+        <i class="fa-solid fa-xmark"></i> Fermer
+      </button>
+    </div>
+  </div>
+</div>

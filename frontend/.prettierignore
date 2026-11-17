@@ -1,0 +1,6 @@
+node_modules/
+dist/
+.angular/
+package-lock.json
+../backend/target/
+../backend/src/main/resources/db/migration/

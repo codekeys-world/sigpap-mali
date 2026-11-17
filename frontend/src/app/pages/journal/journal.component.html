@@ -1,0 +1,183 @@
+@if (!embedded) {
+  <app-page-header
+    title="Journal d’activité"
+    eyebrow="Administration"
+    description="Retrouvez les connexions, les modifications et les accès aux documents, avec leur date et leur auteur."
+  />
+}
+<div [class.card-x]="!embedded">
+  <div class="d-flex flex-wrap align-items-center gap-2 mb-3">
+    <div class="search-box ms-auto">
+      <i class="fa-solid fa-magnifying-glass"></i>
+      <input
+        [ngModel]="f.q"
+        (ngModelChange)="saisie($event)"
+        placeholder="Utilisateur, IP, navigateur, ressource…"
+      />
+    </div>
+  </div>
+  <div class="row g-2 filters mb-3">
+    <div class="col-6 col-md-3">
+      <select class="form-select" [(ngModel)]="f.action" (ngModelChange)="go(0)">
+        <option value="">Toutes les actions</option>
+        @for (a of listeActions; track a.key) {
+          <option [value]="a.key">{{ a.label }}</option>
+        }
+      </select>
+    </div>
+    <div class="col-6 col-md-3">
+      <select class="form-select" [(ngModel)]="f.resultat" (ngModelChange)="go(0)">
+        <option value="">Tous les résultats</option>
+        <option value="succes">Réussies</option>
+        <option value="echec">En échec</option>
+      </select>
+    </div>
+    <div class="col-6 col-md-3">
+      <div class="input-group">
+        <span class="input-group-text">Du</span
+        ><input
+          type="date"
+          class="form-control"
+          [(ngModel)]="f.debut"
+          (ngModelChange)="go(0)"
+          placeholder="jj/mm/aaaa"
+          title="Choisir une date (jour/mois/année)"
+        />
+      </div>
+    </div>
+    <div class="col-6 col-md-3">
+      <div class="input-group">
+        <span class="input-group-text">Au</span
+        ><input
+          type="date"
+          class="form-control"
+          [(ngModel)]="f.fin"
+          (ngModelChange)="go(0)"
+          placeholder="jj/mm/aaaa"
+          title="Choisir une date (jour/mois/année)"
+        />
+      </div>
+    </div>
+  </div>
+
+  @if (data && !data.content.length) {
+    <app-alert
+      type="info"
+      titre="Liste vide"
+      message="Aucune action ne correspond aux filtres actuels."
+    />
+  } @else if (data?.content?.length) {
+    <div class="table-responsive">
+      <table class="table table-modern align-middle">
+        <thead>
+          <tr>
+            <th>Date et heure</th>
+            <th>Utilisateur</th>
+            <th>Action</th>
+            <th>Ressource</th>
+            <th>Adresse IP</th>
+            <th>Client</th>
+            <th>Résultat</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (l of data?.content; track l.id) {
+            <tr style="cursor: pointer" (click)="detail = l">
+              <td class="text-nowrap">
+                <div>{{ l.dateAction | date: 'dd/MM/yyyy' }}</div>
+                <div class="card-sub">{{ l.dateAction | date: 'HH:mm:ss' }}</div>
+              </td>
+              <td>
+                <span class="badge-soft bordeaux"
+                  ><i class="fa-solid fa-user"></i> {{ l.utilisateur }}</span
+                >
+                @if (l.role) {
+                  <div class="card-sub">{{ l.role }}</div>
+                }
+              </td>
+              <td>
+                <span class="badge-soft" [ngClass]="a(l).cls"
+                  ><i class="fa-solid" [ngClass]="a(l).icon"></i> {{ a(l).label }}</span
+                >
+              </td>
+              <td class="small">
+                {{ ressource(l) }}
+                @if (l.ressourceId) {
+                  <span class="text-muted"> #{{ l.ressourceId }}</span>
+                }
+              </td>
+              <td class="small text-nowrap">
+                <i class="fa-solid fa-network-wired text-muted"></i> {{ l.ip || 'Non renseignée' }}
+              </td>
+              <td class="small text-nowrap">
+                <i
+                  class="fa-solid"
+                  [ngClass]="icone(l.appareil)"
+                  style="width: 1.1rem; color: #8a8a8a"
+                ></i>
+                {{ l.navigateur }}
+                <div class="card-sub">{{ l.systeme }}</div>
+              </td>
+              <td>
+                <span class="badge-soft" [ngClass]="l.statut < 400 ? 'green' : 'red'">{{
+                  l.statut
+                }}</span>
+              </td>
+              <td class="text-end"><i class="fa-solid fa-chevron-right text-muted"></i></td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  }
+  @if (data && data.content.length > 0 && data.page.totalElements > 0) {
+    <app-pager
+      [page]="page"
+      [size]="size"
+      [total]="data.page.totalElements"
+      [sizes]="[10, 20, 50, 100]"
+      (pageChange)="go($event)"
+      (sizeChange)="changeSize($event)"
+    />
+  }
+</div>
+
+@if (detail) {
+  <div class="modal-x" (mousedown)="$event.target === $event.currentTarget && (detail = null)">
+    <div class="modal-dialog-x card-x" style="max-width: 720px">
+      <div class="d-flex justify-content-between align-items-center mb-3">
+        <h5 class="fw-bold mb-0">
+          <span class="badge-soft" [ngClass]="a(detail).cls"
+            ><i class="fa-solid" [ngClass]="a(detail).icon"></i> {{ a(detail).label }}</span
+          >
+          <span class="ms-2">#{{ detail.id }}</span>
+        </h5>
+        <button class="btn-close" (click)="detail = null"></button>
+      </div>
+      <div class="row g-3">
+        @for (r of lignes(detail); track r[0]) {
+          <div class="col-sm-6">
+            <div class="card-sub">{{ r[0] }}</div>
+            <div class="small fw-semibold" style="word-break: break-word">
+              {{ r[1] || 'Non renseigné' }}
+            </div>
+          </div>
+        }
+        <div class="col-12">
+          <div class="card-sub">Client complet (User-Agent)</div>
+          <code
+            class="small d-block p-2 rounded-3"
+            style="background: #f6f2f2; word-break: break-all"
+            >{{ detail.client || 'Non renseigné' }}</code
+          >
+        </div>
+      </div>
+      <div class="d-flex justify-content-end mt-3">
+        <button class="btn btn-light" (click)="detail = null">
+          <i class="fa-solid fa-xmark"></i> Fermer
+        </button>
+      </div>
+    </div>
+  </div>
+}

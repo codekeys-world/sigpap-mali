@@ -1,0 +1,472 @@
+@if (!embedded) {
+  <app-page-header
+    [title]="config.title"
+    [eyebrow]="config.section || 'Référentiels'"
+    [description]="
+      config.description || 'Consultez et organisez les données de référence de l’application.'
+    "
+  >
+    <span pageHeaderMeta>{{ totalCount() }} élément(s)</span>
+    @if (canWrite) {
+      <button pageHeaderActions class="btn btn-light" (click)="openNew()">
+        <i class="fa-solid fa-plus"></i> {{ config.addLabel || 'Ajouter' }}
+      </button>
+    }
+  </app-page-header>
+}
+<div class="card-x" [class.embedded]="embedded">
+  <div class="d-flex flex-wrap align-items-center gap-2 mb-3">
+    <div class="ms-auto d-flex gap-2 flex-wrap align-items-center">
+      @if (totalCount() > 0 && config.timeline && !config.paged) {
+        <div class="btn-group">
+          <button
+            class="btn btn-sm"
+            [class.btn-primary]="view === 'timeline'"
+            [class.btn-light]="view !== 'timeline'"
+            title="Vue timeline"
+            (click)="view = 'timeline'"
+          >
+            <i class="fa-solid fa-timeline"></i>
+          </button>
+          <button
+            class="btn btn-sm"
+            [class.btn-primary]="view === 'table'"
+            [class.btn-light]="view !== 'table'"
+            title="Vue tableau"
+            (click)="view = 'table'"
+          >
+            <i class="fa-solid fa-table-list"></i>
+          </button>
+        </div>
+      }
+      <div class="search-box">
+        <i class="fa-solid fa-magnifying-glass"></i>
+        <input [ngModel]="search" (ngModelChange)="onSearch($event)" placeholder="Rechercher…" />
+      </div>
+      @if (canWrite && embedded) {
+        <button class="btn btn-primary" (click)="openNew()">
+          <i class="fa-solid fa-plus"></i> {{ config.addLabel || 'Ajouter' }}
+        </button>
+      }
+    </div>
+  </div>
+
+  @if (!loaded) {
+    <app-alert type="info" titre="Chargement" message="Chargement de la liste…" />
+  } @else if (loadError) {
+    <app-alert
+      type="error"
+      titre="Chargement impossible"
+      message="La liste n'a pas pu être récupérée. Réessayez dans quelques instants."
+    />
+  } @else if (totalCount() === 0) {
+    <app-alert
+      type="info"
+      titre="Liste vide"
+      [message]="
+        search.trim()
+          ? 'Aucun résultat ne correspond à votre recherche.'
+          : config.emptyMessage || 'Cette liste ne contient encore aucun élément.'
+      "
+    />
+  } @else {
+    @if (view === 'timeline' && config.timeline && !config.paged) {
+      <app-timeline
+        [items]="timelineItems()"
+        [editable]="canWrite"
+        [actions]="config.actions || []"
+        (edit)="openEdit($event)"
+        (remove)="supprimer($event)"
+        (action)="action.emit($event)"
+      />
+    } @else {
+      <div class="table-responsive">
+        <table class="table table-modern align-middle mb-0">
+          <thead>
+            <tr>
+              @for (f of cols; track f.key) {
+                <th>{{ f.label }}</th>
+              }
+              @if (canSeeTrace) {
+                <th>Traçabilité</th>
+              }
+              <th class="text-end">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (r of visibleRows(); track r.slug) {
+              <tr>
+                @for (f of cols; track f.key) {
+                  <td>
+                    @if (f.type === 'file') {
+                      @if (get(r, f.key)) {
+                        <div class="d-flex align-items-center gap-1 text-nowrap">
+                          <button
+                            class="btn btn-sm btn-outline-primary py-0"
+                            title="Ouvrir {{ nomFichier(get(r, f.key)) }}"
+                            (click)="open(get(r, f.key))"
+                          >
+                            <i class="fa-solid fa-eye"></i>
+                          </button>
+                          <button
+                            class="btn btn-sm btn-outline-success py-0"
+                            title="Télécharger {{ nomFichier(get(r, f.key)) }}"
+                            (click)="download(get(r, f.key))"
+                          >
+                            <i class="fa-solid fa-download"></i>
+                          </button>
+                          <span class="small text-muted text-truncate" style="max-width: 150px">{{
+                            nomFichier(get(r, f.key))
+                          }}</span>
+                        </div>
+                      } @else {
+                        <span class="text-muted">Non renseigné</span>
+                      }
+                    } @else {
+                      <span>{{ cell(r, f) }}</span>
+                    }
+                  </td>
+                }
+                @if (canSeeTrace) {
+                  <td class="audit-cell text-muted">
+                    <div>
+                      <i class="fa-solid fa-user-plus"></i>
+                      {{ (r.createdBy | auditUser | async) || 'Non renseigné' }} ·
+                      {{ r.createdDate | date: 'dd/MM/yyyy HH:mm' }}
+                    </div>
+                    @if (
+                      r.lastModifiedBy && r.lastModifiedDate && r.lastModifiedDate !== r.createdDate
+                    ) {
+                      <div>
+                        <i class="fa-solid fa-pen"></i> {{ r.lastModifiedBy | auditUser | async }} ·
+                        {{ r.lastModifiedDate | date: 'dd/MM/yyyy HH:mm' }}
+                      </div>
+                    }
+                  </td>
+                }
+                <td class="text-end text-nowrap">
+                  @for (a of config.actions || []; track a.name) {
+                    <button
+                      class="btn btn-sm btn-light me-1"
+                      (click)="action.emit({ name: a.name, row: r })"
+                    >
+                      <i class="fa-solid" [ngClass]="a.icon"></i> {{ a.label }}
+                    </button>
+                  }
+                  @if (canWrite) {
+                    <button
+                      class="btn btn-sm btn-light me-1"
+                      title="Modifier"
+                      (click)="openEdit(r)"
+                    >
+                      <i class="fa-solid fa-pen"></i>
+                    </button>
+                    <button
+                      class="btn btn-sm btn-light text-danger"
+                      title="Supprimer"
+                      (click)="supprimer(r)"
+                    >
+                      <i class="fa-solid fa-trash"></i>
+                    </button>
+                  }
+                </td>
+              </tr>
+            } @empty {
+              <tr>
+                <td
+                  [attr.colspan]="cols.length + (canSeeTrace ? 2 : 1)"
+                  class="text-center text-muted py-4"
+                >
+                  Aucun élément à afficher.
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+      <app-pager
+        [page]="page"
+        [size]="size"
+        [total]="totalCount()"
+        (pageChange)="goPage($event)"
+        (sizeChange)="changeSize($event)"
+      />
+    }
+  }
+</div>
+
+@if (showForm) {
+  <div class="modal-x" (mousedown)="$event.target === $event.currentTarget && closeForm()">
+    <div class="modal-dialog-x card-x" (mousedown)="$event.stopPropagation()">
+      <div class="d-flex justify-content-between align-items-center mb-3">
+        <h5 class="fw-bold mb-0">
+          {{ model.slug ? 'Modifier' : 'Ajouter' }} : {{ config.singular }}
+        </h5>
+        <button class="btn-close" (click)="closeForm()"></button>
+      </div>
+      <p class="form-text">Les champs marqués d’un astérisque (*) sont obligatoires.</p>
+      <div class="row g-3">
+        @for (f of formFields; track f.key) {
+          <div [class]="'col-12 col-md-' + (f.col || 6)">
+            <label class="form-label small fw-semibold" [attr.for]="'crud-' + f.key"
+              >{{ f.label }}
+              @if (f.required) {
+                <span class="text-danger">*</span>
+              }
+            </label>
+            @switch (f.type || 'text') {
+              @case ('textarea') {
+                <textarea
+                  class="form-control"
+                  [id]="'crud-' + f.key"
+                  [attr.aria-required]="f.required || null"
+                  rows="3"
+                  [attr.maxlength]="f.maxLength || 1000"
+                  [placeholder]="f.placeholder || placeholder(f)"
+                  (blur)="touched[f.key] = true"
+                  [class.is-invalid]="touched[f.key] && erreur(f)"
+                  [ngModel]="get(model, f.key)"
+                  (ngModelChange)="set(f.key, $event)"
+                ></textarea>
+              }
+              @case ('select') {
+                <select
+                  class="form-select"
+                  [id]="'crud-' + f.key"
+                  [attr.aria-required]="f.required || null"
+                  (blur)="touched[f.key] = true"
+                  [class.is-invalid]="touched[f.key] && erreur(f)"
+                  [ngModel]="get(model, f.key)"
+                  (ngModelChange)="set(f.key, $event)"
+                >
+                  <option [ngValue]="null">Choisir {{ f.label.toLocaleLowerCase() }}</option>
+                  @for (o of f.options; track o.value) {
+                    <option [ngValue]="o.value">{{ o.label }}</option>
+                  }
+                </select>
+              }
+              @case ('catalogSelect') {
+                <select
+                  class="form-select"
+                  [id]="'crud-' + f.key"
+                  [attr.aria-required]="f.required || null"
+                  (blur)="touched[f.key] = true"
+                  [class.is-invalid]="touched[f.key] && erreur(f)"
+                  [ngModel]="get(model, f.key)"
+                  (ngModelChange)="set(f.key, $event)"
+                >
+                  <option [ngValue]="null">Choisir {{ f.label.toLowerCase() }}</option>
+                  @for (o of refs[f.key] || []; track o.slug) {
+                    <option [ngValue]="o[f.optionLabel || 'nom']">
+                      {{ o[f.optionLabel || 'nom'] }}
+                    </option>
+                  }
+                </select>
+                @if (refErrors[f.key]) {
+                  <div class="form-text text-danger">
+                    {{ refErrors[f.key] }}
+                    <button
+                      type="button"
+                      class="btn btn-link btn-sm p-0 ms-1"
+                      (click)="chargerReference(f)"
+                    >
+                      Réessayer
+                    </button>
+                  </div>
+                }
+              }
+              @case ('ref') {
+                <select
+                  class="form-select"
+                  [id]="'crud-' + f.key"
+                  [attr.aria-required]="f.required || null"
+                  (blur)="touched[f.key] = true"
+                  [class.is-invalid]="touched[f.key] && erreur(f)"
+                  [ngModel]="get(model, f.key)"
+                  (ngModelChange)="set(f.key, $event)"
+                  [compareWith]="sameSlug"
+                >
+                  <option [ngValue]="null">
+                    @if (refLoading[f.key]) {
+                      Chargement…
+                    } @else if (refs[f.key]?.length) {
+                      Choisir {{ f.label.toLowerCase() }}
+                    } @else {
+                      Aucune valeur disponible
+                    }
+                  </option>
+                  @for (o of refs[f.key] || []; track o.slug) {
+                    <option [ngValue]="o">{{ o[f.optionLabel || 'nom'] }}</option>
+                  }
+                </select>
+                @if (refErrors[f.key]) {
+                  <div class="form-text text-danger">
+                    {{ refErrors[f.key] }}
+                    <button
+                      type="button"
+                      class="btn btn-link btn-sm p-0 ms-1"
+                      (click)="chargerReference(f)"
+                    >
+                      Réessayer
+                    </button>
+                  </div>
+                } @else if (!refLoading[f.key] && !refs[f.key]?.length) {
+                  <div class="form-text">
+                    Aucun élément à choisir pour le moment. Vérifiez ou créez d'abord
+                    {{ f.label.toLowerCase() }}.
+                  </div>
+                }
+              }
+              @case ('multiref') {
+                <div
+                  class="border rounded-3 p-2"
+                  style="max-height: 200px; overflow: auto"
+                  [attr.aria-label]="f.label"
+                >
+                  @if (refLoading[f.key]) {
+                    <span class="form-text">Chargement des choix…</span>
+                  } @else if (!refs[f.key]?.length) {
+                    <span class="form-text">Aucune valeur disponible.</span>
+                  } @else {
+                    @for (o of refs[f.key] || []; track o.slug) {
+                      <div class="form-check">
+                        <input
+                          class="form-check-input"
+                          type="checkbox"
+                          [checked]="isSelected(f, o)"
+                          (change)="toggle(f, o)"
+                          [id]="'mr' + f.key + o.slug"
+                        />
+                        <label class="form-check-label" [for]="'mr' + f.key + o.slug">{{
+                          o[f.optionLabel || 'nom']
+                        }}</label>
+                      </div>
+                    }
+                  }
+                </div>
+                @if (refErrors[f.key]) {
+                  <div class="form-text text-danger">
+                    {{ refErrors[f.key] }}
+                    <button
+                      type="button"
+                      class="btn btn-link btn-sm p-0 ms-1"
+                      (click)="chargerReference(f)"
+                    >
+                      Réessayer
+                    </button>
+                  </div>
+                }
+                <div class="form-text">Sélectionnez une ou plusieurs valeurs.</div>
+              }
+              @case ('checkbox') {
+                <div class="form-check form-switch">
+                  <input
+                    class="form-check-input"
+                    type="checkbox"
+                    [ngModel]="get(model, f.key)"
+                    (ngModelChange)="set(f.key, $event)"
+                  />
+                </div>
+              }
+              @case ('file') {
+                <input
+                  type="file"
+                  class="form-control"
+                  [id]="'crud-' + f.key"
+                  [attr.aria-required]="f.required || null"
+                  (change)="onFile($event, f)"
+                  [disabled]="uploading > 0 || saving"
+                  accept=".pdf,.doc,.docx,.xls,.xlsx,.png,.jpg,.jpeg"
+                  title="Choisir un fichier à joindre"
+                />
+                @if (get(model, f.key)) {
+                  <div class="form-text">
+                    <i class="fa-solid fa-paperclip"></i> {{ nomFichier(get(model, f.key)) }}
+                    <button
+                      type="button"
+                      class="btn btn-link btn-sm p-0"
+                      (click)="open(get(model, f.key))"
+                    >
+                      Ouvrir
+                    </button>
+                    ·
+                    <button
+                      type="button"
+                      class="btn btn-link btn-sm p-0"
+                      (click)="download(get(model, f.key))"
+                    >
+                      Télécharger
+                    </button>
+                  </div>
+                }
+              }
+              @default {
+                <input
+                  class="form-control"
+                  [id]="'crud-' + f.key"
+                  [attr.aria-required]="f.required || null"
+                  [type]="f.type === 'number' ? 'number' : f.type === 'date' ? 'date' : 'text'"
+                  [attr.maxlength]="
+                    f.type === 'number' || f.type === 'date' ? null : f.maxLength || 255
+                  "
+                  [attr.placeholder]="f.placeholder || placeholder(f)"
+                  [attr.title]="f.type === 'date' ? 'Choisir une date (jour/mois/année)' : null"
+                  (blur)="touched[f.key] = true"
+                  [class.is-invalid]="touched[f.key] && erreur(f)"
+                  [ngModel]="get(model, f.key)"
+                  (ngModelChange)="set(f.key, $event)"
+                  [attr.list]="f.suggest ? 'dl-' + f.key : null"
+                />
+                @if (f.type === 'date') {
+                  <div class="form-text">Choisissez une date dans le calendrier.</div>
+                }
+                @if (f.suggest) {
+                  <datalist [id]="'dl-' + f.key">
+                    @for (s of suggestions[f.key] || []; track s.slug) {
+                      <option [value]="s[f.suggest.label]"></option>
+                    }
+                  </datalist>
+                }
+              }
+            }
+            @if (touched[f.key] && erreur(f); as err) {
+              <div class="invalid-feedback d-block">{{ err }}</div>
+            }
+            @if (f.hint) {
+              <div class="form-text">{{ f.hint }}</div>
+            }
+          </div>
+        }
+      </div>
+      @if (uploading > 0) {
+        <div class="form-text" role="status">Envoi du fichier en cours…</div>
+      }
+      @if (erreurGlobale) {
+        <app-alert
+          class="d-block mt-3"
+          type="warning"
+          titre="Formulaire incomplet"
+          [message]="erreurGlobale!"
+        />
+      }
+      <div class="d-flex justify-content-end align-items-center gap-2 mt-4">
+        @if (!valid) {
+          <span class="small text-muted me-auto"
+            ><i class="fa-solid fa-circle-info"></i> Renseignez les champs obligatoires et corrigez
+            les erreurs signalées</span
+          >
+        }
+        <button class="btn btn-light" (click)="closeForm()">
+          <i class="fa-solid fa-xmark"></i> Annuler
+        </button>
+        <button
+          class="btn btn-primary"
+          [disabled]="saving || !valid || uploading > 0"
+          (click)="save()"
+        >
+          <i class="fa-solid fa-check"></i> Enregistrer
+        </button>
+      </div>
+    </div>
+  </div>
+}

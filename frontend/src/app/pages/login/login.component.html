@@ -1,0 +1,261 @@
+<main class="auth-screen">
+  <div class="auth-card">
+    <aside class="auth-welcome" aria-labelledby="welcome-title">
+      <div class="auth-orbit" aria-hidden="true"></div>
+      <div class="auth-institution">Administration pénitentiaire · Mali</div>
+      <div class="auth-welcome-copy">
+        <p class="auth-eyebrow">Bienvenue</p>
+        <h2 id="welcome-title">Au service<br />des agents.</h2>
+        <p class="auth-welcome-description">
+          Retrouvez votre espace professionnel pour suivre les dossiers et accompagner les parcours
+          de l’Administration pénitentiaire.
+        </p>
+      </div>
+      <div class="auth-welcome-footer">
+        <span class="auth-security-icon"
+          ><i class="fa-solid fa-user-shield" aria-hidden="true"></i
+        ></span>
+        <span>Un espace sécurisé réservé aux agents autorisés</span>
+      </div>
+    </aside>
+    <section class="auth-main" aria-labelledby="auth-title" [attr.aria-busy]="loading">
+      <a class="auth-back" routerLink="/"
+        ><i class="fa-solid fa-arrow-left" aria-hidden="true"></i> Retour à l’accueil</a
+      >
+      <div class="auth-content">
+        <a class="auth-brand" routerLink="/" aria-label="SIGPAP-MALI — Accueil">
+          <img
+            src="assets/logo-small.webp"
+            alt="Emblème de l’Administration pénitentiaire"
+            width="56"
+            height="72"
+          />
+          <strong>SIGPAP-MALI</strong>
+          <span>Administration pénitentiaire<br />du Mali</span>
+        </a>
+        <h1 id="auth-title">
+          {{
+            mode === 'login'
+              ? 'Espace professionnel'
+              : mode === 'forgot'
+                ? 'Mot de passe oublié'
+                : 'Nouveau mot de passe'
+          }}
+        </h1>
+        <p class="auth-intro">
+          {{
+            mode === 'login'
+              ? 'Connectez-vous à votre espace sécurisé.'
+              : mode === 'forgot'
+                ? 'Indiquez votre adresse e-mail professionnelle pour recevoir un lien de réinitialisation.'
+                : 'Choisissez un nouveau mot de passe pour sécuriser votre compte.'
+          }}
+        </p>
+        @if (mode === 'login') {
+          <form class="auth-form" (ngSubmit)="go()" novalidate>
+            <div class="auth-field">
+              <label for="login-matricule">Matricule *</label>
+              <div class="auth-input">
+                <span class="auth-input-icon"
+                  ><i class="fa-solid fa-user" aria-hidden="true"></i
+                ></span>
+                <input
+                  id="login-matricule"
+                  #loginMatricule="ngModel"
+                  [class.is-invalid]="loginMatricule.touched && !matricule.trim()"
+                  name="matricule"
+                  maxlength="50"
+                  [(ngModel)]="matricule"
+                  placeholder="Ex. : 0159.203-M"
+                  autocomplete="username"
+                  autocapitalize="off"
+                  [spellcheck]="false"
+                  required
+                />
+              </div>
+            </div>
+            <div class="auth-field">
+              <label for="login-password">Mot de passe *</label>
+              <div class="auth-input">
+                <span class="auth-input-icon"
+                  ><i class="fa-solid fa-lock" aria-hidden="true"></i
+                ></span>
+                <input
+                  id="login-password"
+                  #loginPassword="ngModel"
+                  [class.is-invalid]="loginPassword.touched && !motDePasse"
+                  name="motDePasse"
+                  [type]="show ? 'text' : 'password'"
+                  [(ngModel)]="motDePasse"
+                  placeholder="Saisissez votre mot de passe"
+                  autocomplete="current-password"
+                  required
+                />
+                <button
+                  type="button"
+                  class="auth-eye"
+                  (click)="show = !show"
+                  [attr.aria-label]="show ? 'Masquer le mot de passe' : 'Afficher le mot de passe'"
+                  [attr.aria-pressed]="show"
+                >
+                  <i
+                    class="fa-solid"
+                    [ngClass]="show ? 'fa-eye-slash' : 'fa-eye'"
+                    aria-hidden="true"
+                  ></i>
+                </button>
+              </div>
+            </div>
+            <div class="auth-options">
+              <label class="auth-remember" for="auth-remember"
+                ><input
+                  id="auth-remember"
+                  name="seSouvenirDeMoi"
+                  type="checkbox"
+                  [(ngModel)]="seSouvenirDeMoi"
+                /><span>Se souvenir de moi</span></label
+              >
+              <button
+                type="button"
+                class="auth-text-button"
+                [disabled]="loading"
+                (click)="mode = 'forgot'"
+              >
+                <i class="fa-solid fa-key" aria-hidden="true"></i> Mot de passe oublié ?
+              </button>
+            </div>
+            @if (
+              (loginMatricule.touched && !matricule.trim()) ||
+              (loginPassword.touched && !motDePasse)
+            ) {
+              <p class="form-text text-danger">
+                Le matricule et le mot de passe sont obligatoires.
+              </p>
+            }
+            <button type="submit" class="auth-submit" [disabled]="loading || !loginValide">
+              @if (loading) {
+                <span class="spinner-border spinner-border-sm" aria-hidden="true"></span>
+              }
+              {{ loading ? 'Connexion en cours…' : 'Se connecter'
+              }}<i class="fa-solid fa-arrow-right" aria-hidden="true"></i>
+            </button>
+          </form>
+        } @else if (mode === 'forgot') {
+          <form class="auth-form" (ngSubmit)="demanderLien()" novalidate>
+            <div class="form-trap" aria-hidden="true">
+              <label for="forgot-website">Laissez ce champ vide</label>
+              <input
+                id="forgot-website"
+                name="siteWeb"
+                [(ngModel)]="siteWeb"
+                tabindex="-1"
+                autocomplete="off"
+                placeholder="Laissez ce champ vide"
+              />
+            </div>
+            <div class="auth-field">
+              <label for="forgot-email">Adresse e-mail *</label>
+              <div class="auth-input">
+                <span class="auth-input-icon"
+                  ><i class="fa-regular fa-envelope" aria-hidden="true"></i
+                ></span>
+                <input
+                  id="forgot-email"
+                  name="email"
+                  maxlength="150"
+                  #forgotEmail="ngModel"
+                  [class.is-invalid]="forgotEmail.touched && !emailValide"
+                  type="email"
+                  [(ngModel)]="email"
+                  placeholder="prenom.nom@exemple.ml"
+                  autocomplete="email"
+                  required
+                />
+              </div>
+            </div>
+            @if (forgotEmail.touched && !emailValide) {
+              <p class="form-text text-danger">Renseignez une adresse e-mail valide.</p>
+            }
+            <button type="submit" class="auth-submit" [disabled]="loading || !emailValide">
+              @if (loading) {
+                <span class="spinner-border spinner-border-sm" aria-hidden="true"></span>
+              }
+              {{ loading ? 'Envoi en cours…' : 'Recevoir le lien'
+              }}<i class="fa-solid fa-arrow-right" aria-hidden="true"></i>
+            </button>
+            <button
+              type="button"
+              class="auth-return auth-text-button"
+              [disabled]="loading"
+              (click)="mode = 'login'"
+            >
+              <i class="fa-solid fa-arrow-left" aria-hidden="true"></i> Retour à la connexion
+            </button>
+          </form>
+        } @else {
+          <form class="auth-form" (ngSubmit)="reinitialiser()" novalidate>
+            <div class="auth-field">
+              <label for="reset-password">Nouveau mot de passe *</label>
+              <div class="auth-input">
+                <span class="auth-input-icon"
+                  ><i class="fa-solid fa-lock" aria-hidden="true"></i
+                ></span>
+                <input
+                  id="reset-password"
+                  name="nouveauMotDePasse"
+                  minlength="8"
+                  #resetPassword="ngModel"
+                  type="password"
+                  [(ngModel)]="nouveauMotDePasse"
+                  placeholder="8 caractères minimum"
+                  autocomplete="new-password"
+                  required
+                />
+              </div>
+            </div>
+            <div class="auth-field">
+              <label for="reset-confirm">Confirmer le mot de passe *</label>
+              <div class="auth-input">
+                <span class="auth-input-icon"
+                  ><i class="fa-solid fa-lock" aria-hidden="true"></i
+                ></span>
+                <input
+                  id="reset-confirm"
+                  name="confirmation"
+                  #resetConfirmation="ngModel"
+                  type="password"
+                  [(ngModel)]="confirmation"
+                  placeholder="Saisissez à nouveau le mot de passe"
+                  autocomplete="new-password"
+                  required
+                />
+              </div>
+            </div>
+            @if (resetPassword.touched && nouveauMotDePasse.length < 8) {
+              <p class="form-text text-danger">
+                Le mot de passe doit contenir au moins 8 caractères.
+              </p>
+            }
+            @if (resetConfirmation.touched && confirmation !== nouveauMotDePasse) {
+              <p class="form-text text-danger">Les mots de passe ne correspondent pas.</p>
+            }
+            <button type="submit" class="auth-submit" [disabled]="loading || !resetValide">
+              @if (loading) {
+                <span class="spinner-border spinner-border-sm" aria-hidden="true"></span>
+              }
+              {{ loading ? 'Enregistrement…' : 'Enregistrer le mot de passe'
+              }}<i class="fa-solid fa-arrow-right" aria-hidden="true"></i>
+            </button>
+          </form>
+        }
+        <div class="auth-trust">
+          <span></span><i class="fa-solid fa-shield-halved" aria-hidden="true"></i> Connexion
+          sécurisée<span></span>
+        </div>
+        <p class="auth-copyright">
+          © {{ currentYear }} — SIGPAP-MALI<br /><span>Administration pénitentiaire du Mali</span>
+        </p>
+      </div>
+    </section>
+  </div>
+</main>

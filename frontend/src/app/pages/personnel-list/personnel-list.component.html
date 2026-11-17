@@ -1,0 +1,411 @@
+<app-page-header
+  title="Personnel"
+  eyebrow="Gestion des agents"
+  description="Consultez les dossiers et suivez la situation professionnelle de chaque agent."
+>
+  <span pageHeaderMeta>{{ data?.page?.totalElements ?? 0 }} agent(s)</span>
+  <div pageHeaderActions class="d-flex flex-wrap gap-2">
+    <button class="btn btn-light" (click)="exporter('xlsx')">
+      <i class="fa-solid fa-file-excel"></i> Exporter en Excel
+    </button>
+    <button class="btn btn-light" (click)="exporter('docx')">
+      <i class="fa-solid fa-file-word"></i> Word
+    </button>
+    @if (canImport) {
+      <a class="btn btn-light" routerLink="/app/personnel/import"
+        ><i class="fa-solid fa-file-import"></i> Importer</a
+      >
+    }
+    @if (canManage) {
+      <a class="btn btn-light" routerLink="/app/personnel/nouveau"
+        ><i class="fa-solid fa-user-plus"></i> Nouvel agent</a
+      >
+    }
+  </div>
+</app-page-header>
+<div class="card-x">
+  <div class="d-flex justify-content-end mb-3">
+    <div class="btn-group">
+      <button
+        class="btn"
+        [class.btn-primary]="vue === 'cartes'"
+        [class.btn-light]="vue !== 'cartes'"
+        title="Affichage en cartes"
+        (click)="changerVue('cartes')"
+      >
+        <i class="fa-solid fa-table-cells-large"></i>
+      </button>
+      <button
+        class="btn"
+        [class.btn-primary]="vue === 'tableau'"
+        [class.btn-light]="vue !== 'tableau'"
+        title="Affichage en tableau"
+        (click)="changerVue('tableau')"
+      >
+        <i class="fa-solid fa-list"></i>
+      </button>
+    </div>
+  </div>
+  <div class="row g-2 filters mb-3">
+    <div class="col-12 col-md-4">
+      <div class="search-box">
+        <i class="fa-solid fa-magnifying-glass"></i>
+        <input
+          class="w-100"
+          [(ngModel)]="f.q"
+          (ngModelChange)="saisie()"
+          (keyup.enter)="rechercher()"
+          placeholder="Prénom, nom, matricule, téléphone ou service"
+        />
+      </div>
+    </div>
+    <div class="col-6 col-md-4 col-lg-2">
+      <select
+        class="form-select"
+        [(ngModel)]="f.corpsSlug"
+        (ngModelChange)="f.gradeSlug = ''; rechercher()"
+      >
+        <option value="">Tous les corps</option>
+        @for (c of corps; track c.slug) {
+          <option [value]="c.slug">{{ c.nom }}</option>
+        }
+      </select>
+    </div>
+    <div class="col-6 col-md-4 col-lg-2">
+      <select class="form-select" [(ngModel)]="f.gradeSlug" (ngModelChange)="rechercher()">
+        <option value="">Tous les grades</option>
+        @for (g of gradesFiltres; track g.slug) {
+          <option [value]="g.slug">{{ g.nom }}</option>
+        }
+      </select>
+    </div>
+    <div class="col-6 col-md-4 col-lg-2">
+      <select class="form-select" [(ngModel)]="f.serviceSlug" (ngModelChange)="rechercher()">
+        <option value="">Tous les services</option>
+        @for (s of services; track s.slug) {
+          <option [value]="s.slug">{{ s.nom }}</option>
+        }
+      </select>
+    </div>
+    <div class="col-6 col-md-4 col-lg-2">
+      <select class="form-select" [(ngModel)]="f.statut" (ngModelChange)="rechercher()">
+        <option value="">Toutes les situations</option>
+        <option value="ACTIF">En activité</option>
+        <option value="MALADE">Malade</option>
+        <option value="ABANDON_POSTE">Abandon de poste</option>
+        <option value="DECEDE">Décédé</option>
+        <option value="RETRAITE">Retraité</option>
+      </select>
+    </div>
+    <div class="col-12 d-flex flex-wrap gap-4 align-items-center small">
+      <div class="form-check form-switch mb-0">
+        <input
+          class="form-check-input"
+          type="checkbox"
+          id="fs"
+          [(ngModel)]="f.surveillant"
+          (ngModelChange)="rechercher()"
+        /><label class="form-check-label" for="fs">Surveillants</label>
+      </div>
+      <div class="form-check form-switch mb-0">
+        <input
+          class="form-check-input"
+          type="checkbox"
+          id="ff"
+          [(ngModel)]="f.enFormation"
+          (ngModelChange)="rechercher()"
+        /><label class="form-check-label" for="ff">En formation</label>
+      </div>
+      <div class="form-check form-switch mb-0">
+        <input
+          class="form-check-input"
+          type="checkbox"
+          id="fe"
+          [(ngModel)]="f.enEtude"
+          (ngModelChange)="rechercher()"
+        /><label class="form-check-label" for="fe">En étude</label>
+      </div>
+      <span class="text-muted ms-auto"
+        ><i class="fa-solid fa-file-excel text-success"></i> Les exports Excel / Word appliquent
+        tous ces filtres ({{ data?.page?.totalElements ?? 0 }} agent(s)).</span
+      >
+    </div>
+  </div>
+
+  @if (!data) {
+    <app-alert
+      type="info"
+      titre="Chargement"
+      message="La liste du personnel est en cours de chargement."
+    />
+  } @else if (data.page.totalElements > 0) {
+    @if (vue === 'cartes') {
+      <div class="row g-3">
+        @for (p of data?.content; track p.slug; let i = $index) {
+          <div class="col-12 col-sm-6 col-lg-4 col-xl-3">
+            <div
+              class="agent-card"
+              [class.deces]="sit(p) === 'DECEDE'"
+              tabindex="0"
+              role="link"
+              (click)="ouvrir(p)"
+              (keyup.enter)="ouvrir(p)"
+            >
+              <div class="agent-photo">
+                <app-avatar
+                  [slug]="p.slug"
+                  [photo]="p.photo"
+                  [nom]="p.nom"
+                  [prenom]="p.prenom"
+                  size="card"
+                  [color]="'c' + ((i % 5) + 1)"
+                />
+                <div class="agent-badges">
+                  @if (sit(p) !== 'DECEDE') {
+                    @if (p.enFormation) {
+                      <span class="badge-soft yellow">En formation</span>
+                    }
+                    @if (!p.actif) {
+                      <span class="badge-soft gray">Inactif</span>
+                    }
+                  }
+                </div>
+              </div>
+              <div class="agent-tri"></div>
+              <div class="agent-body">
+                <app-agent-status class="d-block mb-2" [agent]="p" />
+                <div class="fw-bold text-truncate" style="color: var(--ap-bordeaux)">
+                  {{ p.prenom }} {{ p.nom | uppercase }}
+                </div>
+                <div class="small text-muted mb-1">
+                  <i class="fa-solid fa-id-badge"></i> {{ p.matricule }}
+                </div>
+                @if (p.surveillant) {
+                  <div class="small text-truncate">
+                    <i class="fa-solid fa-award" style="width: 1.1rem; color: #8b1e1e"></i>
+                    {{ p.surveillant ? p.gradeActuel?.nom || 'Grade non renseigné' : 'Sans grade' }}
+                  </div>
+                }
+                <div class="small text-truncate text-muted">
+                  <i class="fa-solid fa-sitemap" style="width: 1.1rem"></i>
+                  {{ p.corpsActuel?.nom || p.gradeActuel?.corps?.nom || 'Corps non renseigné' }}
+                </div>
+                <div class="small text-truncate text-muted">
+                  <i class="fa-solid fa-building" style="width: 1.1rem"></i>
+                  {{ p.serviceCourant?.nom || 'Service non renseigné' }}
+                </div>
+                @if (sit(p) !== 'ACTIF') {
+                  <div class="agent-remark" [ngClass]="'rem-' + info(p).cls">
+                    <i class="fa-solid" [ngClass]="info(p).icon"></i> {{ remarque(p) }}
+                  </div>
+                }
+                @if (p.telephone) {
+                  <div class="small text-muted">
+                    <i class="fa-solid fa-phone" style="width: 1.1rem"></i> {{ p.telephone }}
+                  </div>
+                }
+              </div>
+              <div class="agent-actions" (click)="$event.stopPropagation()">
+                <a
+                  class="btn btn-sm btn-light"
+                  [routerLink]="['/app/personnel', p.slug]"
+                  title="Voir la fiche"
+                  ><i class="fa-solid fa-eye"></i
+                ></a>
+                @if (canManage) {
+                  <a
+                    class="btn btn-sm btn-light"
+                    [routerLink]="['/app/personnel', p.slug, 'modifier']"
+                    title="Modifier"
+                    ><i class="fa-solid fa-pen"></i
+                  ></a>
+                  <app-situation-menu [agent]="p" mode="menu" (done)="go(page)" />
+                  <button
+                    class="btn btn-sm btn-light"
+                    (click)="carteAgent = p"
+                    title="Imprimer la carte de service"
+                  >
+                    <i class="fa-solid fa-print"></i>
+                  </button>
+                  <button
+                    class="btn btn-sm btn-light text-danger"
+                    (click)="supprimerAgent(p)"
+                    title="Supprimer"
+                  >
+                    <i class="fa-solid fa-trash"></i>
+                  </button>
+                }
+              </div>
+            </div>
+          </div>
+        } @empty {
+          @if (data) {
+            <div class="col-12">
+              <app-alert
+                type="info"
+                titre="Aucun agent"
+                [message]="
+                  f.q
+                    ? 'Aucun agent ne correspond aux filtres ou à la recherche.'
+                    : 'La liste du personnel ne contient encore aucun agent.'
+                "
+              />
+            </div>
+          }
+        }
+      </div>
+    } @else {
+      <div class="table-responsive">
+        <table class="table table-modern align-middle">
+          <thead>
+            <tr>
+              <th>Agent</th>
+              <th>Matricule</th>
+              <th>Grade / Corps</th>
+              <th>Service</th>
+              <th>Statut</th>
+              @if (canSeeAudit) {
+                <th>Traçabilité</th>
+              }
+              <th class="text-end">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (p of data?.content; track p.slug; let i = $index) {
+              <tr>
+                <td>
+                  <div class="d-flex align-items-center gap-2">
+                    <app-avatar
+                      [slug]="p.slug"
+                      [photo]="p.photo"
+                      [nom]="p.nom"
+                      [prenom]="p.prenom"
+                      size="sm"
+                      [color]="'c' + ((i % 5) + 1)"
+                    />
+                    <a class="ap-link fw-semibold" [routerLink]="['/app/personnel', p.slug]"
+                      >{{ p.prenom }} {{ p.nom }}</a
+                    >
+                  </div>
+                </td>
+                <td>{{ p.matricule }}</td>
+                <td>
+                  {{ p.surveillant ? p.gradeActuel?.nom || 'Grade non renseigné' : 'Sans grade' }}
+                  <div class="card-sub">{{ p.corpsActuel?.nom || p.gradeActuel?.corps?.nom }}</div>
+                </td>
+                <td class="small">{{ p.serviceCourant?.nom || 'Non renseigné' }}</td>
+                <td>
+                  <app-agent-status [agent]="p" />
+                  @if (sit(p) !== 'DECEDE') {
+                    @if (p.enFormation) {
+                      <span class="badge-soft yellow ms-1">En formation</span>
+                    }
+                    @if (!p.actif) {
+                      <span class="badge-soft gray ms-1">Inactif</span>
+                    }
+                  }
+                  @if (sit(p) !== 'ACTIF') {
+                    <div class="card-sub mt-1" style="max-width: 260px; white-space: normal">
+                      {{ remarque(p) }}
+                    </div>
+                  }
+                </td>
+                @if (canSeeAudit) {
+                  <td class="audit-cell text-muted">
+                    <div>
+                      <i class="fa-solid fa-user-plus"></i>
+                      {{ (p.createdBy | auditUser | async) || 'Non renseigné' }} ·
+                      {{ p.createdDate | date: 'dd/MM/yyyy' }}
+                    </div>
+                    @if (p.lastModifiedBy && p.lastModifiedDate !== p.createdDate) {
+                      <div>
+                        <i class="fa-solid fa-pen"></i> {{ p.lastModifiedBy | auditUser | async }} ·
+                        {{ p.lastModifiedDate | date: 'dd/MM/yyyy' }}
+                      </div>
+                    }
+                  </td>
+                }
+                <td class="text-end text-nowrap">
+                  <a
+                    class="btn btn-sm btn-light me-1"
+                    [routerLink]="['/app/personnel', p.slug]"
+                    title="Voir la fiche"
+                    ><i class="fa-solid fa-eye"></i
+                  ></a>
+                  @if (canManage) {
+                    <a
+                      class="btn btn-sm btn-light me-1"
+                      [routerLink]="['/app/personnel', p.slug, 'modifier']"
+                      title="Modifier"
+                      ><i class="fa-solid fa-pen"></i
+                    ></a>
+                    <app-situation-menu class="me-1" [agent]="p" mode="menu" (done)="go(page)" />
+                    <button
+                      class="btn btn-sm btn-light me-1"
+                      (click)="carteAgent = p"
+                      title="Imprimer la carte de service"
+                    >
+                      <i class="fa-solid fa-print"></i>
+                    </button>
+                    <button
+                      class="btn btn-sm btn-light text-danger"
+                      (click)="supprimerAgent(p)"
+                      title="Supprimer"
+                    >
+                      <i class="fa-solid fa-trash"></i>
+                    </button>
+                  }
+                </td>
+              </tr>
+            } @empty {
+              @if (data) {
+                <tr>
+                  <td [attr.colspan]="canSeeAudit ? 7 : 6">
+                    <app-alert
+                      type="info"
+                      titre="Aucun agent"
+                      [message]="
+                        f.q
+                          ? 'Aucun agent ne correspond aux filtres ou à la recherche.'
+                          : 'La liste du personnel ne contient encore aucun agent.'
+                      "
+                    />
+                  </td>
+                </tr>
+              }
+            }
+          </tbody>
+        </table>
+      </div>
+    }
+  } @else {
+    <app-alert
+      type="info"
+      titre="Aucun agent"
+      [message]="
+        f.q
+          ? 'Aucun agent ne correspond aux filtres ou à la recherche.'
+          : 'La liste du personnel ne contient encore aucun agent.'
+      "
+    />
+  }
+  @if (data && data.page.totalElements > 0) {
+    <app-pager
+      [page]="page"
+      [size]="size"
+      [total]="data.page.totalElements"
+      [sizes]="vue === 'cartes' ? [8, 12, 24, 48] : [5, 10, 20, 50]"
+      (pageChange)="go($event)"
+      (sizeChange)="changeSize($event)"
+    />
+  }
+</div>
+
+@if (carteAgent) {
+  <app-carte-service
+    [agent]="carteAgent"
+    [canPdf]="canManage"
+    [canUploadSignature]="canImport"
+    (closed)="carteAgent = null"
+  />
+}

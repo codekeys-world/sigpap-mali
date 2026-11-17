@@ -1,0 +1,29 @@
+.quick-agent-search {
+  flex: 1 1 auto;
+  min-width: 0;
+  gap: 0.5rem;
+  margin-right: clamp(0.5rem, 2vw, 2rem);
+}
+
+.quick-agent-search input {
+  width: 100%;
+  min-width: 0;
+  flex: 1 1 auto;
+}
+
+.quick-agent-search .btn {
+  flex-shrink: 0;
+}
+
+@media (min-width: 1200px) {
+  .quick-agent-search {
+    max-width: 1000px;
+  }
+}
+.nav-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 1035;
+  background: #0006;
+  border: 0;
+}

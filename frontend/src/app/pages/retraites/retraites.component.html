@@ -1,0 +1,149 @@
+<app-page-header
+  title="Suivi des retraites"
+  eyebrow="Parcours professionnels"
+  description="Anticipez les départs et consultez les échéances de retraite des agents."
+>
+  <button pageHeaderActions class="btn btn-light" (click)="exporter()">
+    <i class="fa-solid fa-file-excel"></i> Exporter en Excel
+  </button>
+</app-page-header>
+<div class="card-x">
+  <div class="d-flex flex-wrap align-items-center gap-2 mb-3">
+    <div>
+      <div class="card-sub">
+        Date prévue = date de naissance + âge de retraite du corps (paramétrable dans « Corps »)
+      </div>
+    </div>
+    <div class="ms-auto d-flex gap-2 flex-wrap">
+      <div class="search-box">
+        <i class="fa-solid fa-magnifying-glass"></i>
+        <input
+          [ngModel]="q"
+          (ngModelChange)="saisie($event)"
+          placeholder="Prénom, nom, matricule"
+        />
+      </div>
+    </div>
+  </div>
+
+  <div class="pill-tabs mb-3">
+    @for (o of onglets; track o.label) {
+      <button [class.active]="o.etat === etat && o.horizon === horizon" (click)="choisir(o)">
+        <i class="fa-solid" [ngClass]="o.icon"></i> {{ o.label }}
+      </button>
+    }
+  </div>
+
+  @if (data && !data.content.length) {
+    <app-alert
+      type="info"
+      titre="Liste vide"
+      message="Aucun agent dans cette catégorie ou pour cette recherche."
+    />
+  } @else if (data?.content?.length) {
+    <div class="table-responsive">
+      <table class="table table-modern align-middle">
+        <thead>
+          <tr>
+            <th>Agent</th>
+            <th>Grade / Corps</th>
+            <th>Service</th>
+            <th>Naissance</th>
+            <th>Âge / retraite</th>
+            <th>Retraite prévue</th>
+            <th>État</th>
+            <th class="text-end">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (l of data?.content; track l.slug; let i = $index) {
+            <tr>
+              <td>
+                <div class="d-flex align-items-center gap-2">
+                  <app-avatar
+                    [slug]="l.slug"
+                    [photo]="l.photo"
+                    [nom]="l.nom"
+                    [prenom]="l.prenom"
+                    size="sm"
+                    [color]="'c' + ((i % 5) + 1)"
+                  />
+                  <div>
+                    <a class="ap-link fw-semibold" [routerLink]="['/app/personnel', l.slug]"
+                      >{{ l.prenom }} {{ l.nom }}</a
+                    >
+                    <div class="card-sub">{{ l.matricule }}</div>
+                  </div>
+                </div>
+              </td>
+              <td>
+                {{ l.surveillant ? l.grade || 'Grade non renseigné' : 'Sans grade' }}
+                <div class="card-sub">{{ l.corps }}</div>
+              </td>
+              <td class="small">{{ l.service || 'Non renseigné' }}</td>
+              <td class="small">{{ fmt(l.dateNaissance) || 'Non renseignée' }}</td>
+              <td class="small">
+                {{ l.age == null ? 'Âge non renseigné' : l.age + ' ans' }}
+                <div class="card-sub">Départ à {{ l.ageRetraite }} ans</div>
+              </td>
+              <td class="small fw-semibold">{{ fmt(l.datePrevue) || 'Non renseignée' }}</td>
+              <td>
+                @switch (l.etat) {
+                  @case ('RETRAITE') {
+                    <span class="badge-soft gray"
+                      ><i class="fa-solid fa-umbrella-beach"></i> Retraité(e) le
+                      {{ fmt(l.dateRetraite) }}</span
+                    >
+                    @if (l.motifRetraite) {
+                      <div class="card-sub">{{ l.motifRetraite }}</div>
+                    }
+                  }
+                  @case ('DEPASSEE') {
+                    <span class="badge-soft red"
+                      ><i class="fa-solid fa-triangle-exclamation"></i> Dépassée de
+                      {{ abs(l.moisRestants) }} mois</span
+                    >
+                  }
+                  @case ('A_VENIR') {
+                    <span class="badge-soft" [ngClass]="l.moisRestants <= 12 ? 'yellow' : 'green'"
+                      ><i class="fa-solid fa-hourglass-half"></i> Dans
+                      {{ l.moisRestants }} mois</span
+                    >
+                  }
+                  @default {
+                    <span class="badge-soft gray">Naissance non renseignée</span>
+                  }
+                }
+              </td>
+              <td class="text-end text-nowrap">
+                <a
+                  class="btn btn-sm btn-light me-1"
+                  [routerLink]="['/app/personnel', l.slug]"
+                  title="Voir la fiche"
+                  ><i class="fa-solid fa-eye"></i
+                ></a>
+                @if (canAct && l.etat !== 'RETRAITE') {
+                  <app-situation-menu
+                    [agent]="l.agent"
+                    mode="menu"
+                    [only]="['RETRAITE']"
+                    (done)="go(page)"
+                  />
+                }
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  }
+  @if (data && data.content.length > 0 && data.page.totalElements > 0) {
+    <app-pager
+      [page]="page"
+      [size]="size"
+      [total]="data.page.totalElements"
+      (pageChange)="go($event)"
+      (sizeChange)="changeSize($event)"
+    />
+  }
+</div>

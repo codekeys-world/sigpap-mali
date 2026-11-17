@@ -1,0 +1,9 @@
+:host {
+  display: block;
+  width: 100%;
+}
+
+.personnel-form-card {
+  width: 100%;
+  max-width: none;
+}

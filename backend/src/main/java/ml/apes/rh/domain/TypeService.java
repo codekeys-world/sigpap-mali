@@ -1,0 +1,10 @@
+package ml.apes.rh.domain;
+
+public enum TypeService {
+    DIRECTION_GENERALE,
+    DIRECTION_REGIONALE,
+    SERVICES_RATTACHE,
+    MAISON_ARRET_CORRECTION,
+    CENTRE_PENITENCIER_AGRICOLE,
+    AUTRE_SERVICE,
+}

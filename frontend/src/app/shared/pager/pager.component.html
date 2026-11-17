@@ -1,0 +1,44 @@
+@if (total > 0) {
+  <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mt-3">
+    <div class="d-flex align-items-center gap-2 card-sub">
+      <span>{{ debut }} à {{ fin }} sur {{ total }}</span>
+      <select
+        class="form-select form-select-sm"
+        style="width: auto"
+        [ngModel]="size"
+        (ngModelChange)="sizeChange.emit($event)"
+      >
+        @for (s of sizes; track s) {
+          <option [ngValue]="s">{{ s }} / page</option>
+        }
+      </select>
+    </div>
+    <ul class="pagination pagination-sm mb-0">
+      <li class="page-item" [class.disabled]="page === 0">
+        <button class="page-link" title="Première page" (click)="go(0)">
+          <i class="fa-solid fa-angles-left"></i>
+        </button>
+      </li>
+      <li class="page-item" [class.disabled]="page === 0">
+        <button class="page-link" title="Précédente" (click)="go(page - 1)">
+          <i class="fa-solid fa-chevron-left"></i>
+        </button>
+      </li>
+      @for (p of pages; track p) {
+        <li class="page-item" [class.active]="p === page">
+          <button class="page-link" (click)="go(p)">{{ p + 1 }}</button>
+        </li>
+      }
+      <li class="page-item" [class.disabled]="page + 1 >= totalPages">
+        <button class="page-link" title="Suivante" (click)="go(page + 1)">
+          <i class="fa-solid fa-chevron-right"></i>
+        </button>
+      </li>
+      <li class="page-item" [class.disabled]="page + 1 >= totalPages">
+        <button class="page-link" title="Dernière page" (click)="go(totalPages - 1)">
+          <i class="fa-solid fa-angles-right"></i>
+        </button>
+      </li>
+    </ul>
+  </div>
+}

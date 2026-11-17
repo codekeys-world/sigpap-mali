@@ -1,0 +1,302 @@
+<app-page-header
+  title="Mon profil"
+  eyebrow="Mon espace"
+  [description]="
+    canEditProfile
+      ? 'Consultez vos informations personnelles et mettez à jour votre mot de passe.'
+      : 'Consultez vos informations personnelles. Votre mot de passe reste modifiable.'
+  "
+/>
+<div class="row g-3">
+  <div class="col-lg-5">
+    @if (me) {
+      <div class="card-x profile-card">
+        <div class="profile-avatar">
+          <app-avatar
+            [slug]="me.slug"
+            [photo]="me.photo"
+            [nom]="me.nom"
+            [prenom]="me.prenom"
+            size="xl"
+          />
+        </div>
+        <h4 class="fw-bold mt-3 mb-0">{{ me.prenom }} {{ me.nom }}</h4>
+        <div class="profile-matricule">{{ me.matricule }}</div>
+        <app-agent-status class="d-block my-2" [agent]="me" [centered]="true" />
+        @if (me.photo) {
+          <button class="btn btn-sm btn-light mb-2" (click)="telechargerPhoto()">
+            <i class="fa-solid fa-download"></i> Télécharger ma photo
+          </button>
+        }
+        <div class="profile-meta">
+          <span class="role-chip" title="Rôle"
+            ><i class="fa-solid fa-user-shield"></i> {{ role }}</span
+          >
+          @if (canPrintServiceCard) {
+            <button type="button" class="btn btn-print-card" (click)="carte = true">
+              <i class="fa-solid fa-print"></i> Imprimer ma carte de service
+            </button>
+          }
+        </div>
+        <div class="profile-details small">
+          <div class="detail-row">
+            <span class="card-sub d-block">Corps</span
+            ><b>{{ me.corpsActuel?.nom || me.gradeActuel?.corps?.nom || 'Non renseigné' }}</b>
+          </div>
+          <div class="detail-row">
+            <span class="card-sub d-block">Grade</span
+            ><b>{{ me.surveillant ? me.gradeActuel?.nom || 'Non renseigné' : 'Sans grade' }}</b>
+          </div>
+          <div class="detail-row">
+            <span class="card-sub d-block">Service</span
+            ><b>{{ me.serviceCourant?.nom || 'Non renseigné' }}</b>
+          </div>
+          <div class="detail-row">
+            <span class="card-sub d-block">Date de titularisation</span
+            ><b>{{ fmt(me.dateTitularisation) || 'Non renseignée' }}</b>
+          </div>
+          <div class="detail-row">
+            <span class="card-sub d-block">E-mail</span><b>{{ me.email || 'Non renseigné' }}</b>
+          </div>
+          @if (canSeeAudit) {
+            <div class="detail-row">
+              <span class="card-sub d-block">Dernière modification du compte</span>
+              <b>{{ (me.lastModifiedBy | auditUser | async) || 'Non renseigné' }}</b>
+              {{ fmt(me.lastModifiedDate) }}
+            </div>
+          }
+        </div>
+      </div>
+    }
+  </div>
+  <div class="col-lg-7">
+    <div class="card-x mb-3">
+      <h5 class="fw-bold mb-1">
+        <i class="fa-solid fa-address-card"></i> Mes informations personnelles
+      </h5>
+      <p class="card-sub">
+        @if (canEditProfile) {
+          Mettez à jour vos coordonnées et votre état civil.
+        } @else {
+          Consultez vos coordonnées et votre état civil.
+        }
+      </p>
+      <fieldset [disabled]="!canEditProfile">
+        <div class="row g-3">
+          <div class="col-md-6">
+            <label class="form-label small fw-semibold">Prénom *</label
+            ><input
+              class="form-control"
+              [(ngModel)]="identite.prenom"
+              (blur)="touched['prenom'] = true"
+              [class.is-invalid]="touched['prenom'] && erreursIdentite['prenom']"
+              required
+              maxlength="100"
+              placeholder="Votre prénom"
+            />
+            @if (touched['prenom'] && erreursIdentite['prenom']) {
+              <div class="invalid-feedback d-block">{{ erreursIdentite['prenom'] }}</div>
+            }
+          </div>
+          <div class="col-md-6">
+            <label class="form-label small fw-semibold">Nom *</label
+            ><input
+              class="form-control"
+              [(ngModel)]="identite.nom"
+              (blur)="touched['nom'] = true"
+              [class.is-invalid]="touched['nom'] && erreursIdentite['nom']"
+              required
+              maxlength="100"
+              placeholder="Votre nom"
+            />
+            @if (touched['nom'] && erreursIdentite['nom']) {
+              <div class="invalid-feedback d-block">{{ erreursIdentite['nom'] }}</div>
+            }
+          </div>
+          <div class="col-md-6">
+            <label class="form-label small fw-semibold">Sexe *</label
+            ><select
+              class="form-select"
+              [(ngModel)]="identite.sexe"
+              required
+              (blur)="touched['sexe'] = true"
+              [class.is-invalid]="touched['sexe'] && erreursIdentite['sexe']"
+            >
+              <option [ngValue]="null">Choisir le sexe</option>
+              <option value="M">Masculin</option>
+              <option value="F">Féminin</option>
+            </select>
+            @if (touched['sexe'] && erreursIdentite['sexe']) {
+              <div class="invalid-feedback d-block">{{ erreursIdentite['sexe'] }}</div>
+            }
+          </div>
+          <div class="col-md-6">
+            <label class="form-label small fw-semibold">Date de naissance</label
+            ><input
+              type="date"
+              class="form-control"
+              [(ngModel)]="identite.dateNaissance"
+              (blur)="touched['dateNaissance'] = true"
+              [class.is-invalid]="touched['dateNaissance'] && erreursIdentite['dateNaissance']"
+              placeholder="jj/mm/aaaa"
+              title="Choisir une date (jour/mois/année)"
+            />
+            @if (touched['dateNaissance'] && erreursIdentite['dateNaissance']) {
+              <div class="invalid-feedback d-block">{{ erreursIdentite['dateNaissance'] }}</div>
+            }
+          </div>
+          <div class="col-md-6">
+            <label class="form-label small fw-semibold">Lieu de naissance</label
+            ><input
+              class="form-control"
+              [(ngModel)]="identite.lieuNaissance"
+              (blur)="touched['lieuNaissance'] = true"
+              [class.is-invalid]="touched['lieuNaissance'] && erreursIdentite['lieuNaissance']"
+              maxlength="150"
+              placeholder="Ex. : Bamako"
+            />
+            @if (touched['lieuNaissance'] && erreursIdentite['lieuNaissance']) {
+              <div class="invalid-feedback d-block">{{ erreursIdentite['lieuNaissance'] }}</div>
+            }
+          </div>
+          <div class="col-md-6">
+            <label class="form-label small fw-semibold">Téléphone</label
+            ><input
+              class="form-control"
+              [(ngModel)]="identite.telephone"
+              (blur)="touched['telephone'] = true"
+              [class.is-invalid]="touched['telephone'] && erreursIdentite['telephone']"
+              maxlength="30"
+              placeholder="+223 70 00 00 00"
+            />
+            @if (touched['telephone'] && erreursIdentite['telephone']) {
+              <div class="invalid-feedback d-block">{{ erreursIdentite['telephone'] }}</div>
+            }
+          </div>
+          <div class="col-12">
+            <label class="form-label small fw-semibold">E-mail</label
+            ><input
+              type="email"
+              class="form-control"
+              [(ngModel)]="identite.email"
+              (blur)="touched['email'] = true"
+              [class.is-invalid]="touched['email'] && erreursIdentite['email']"
+              maxlength="150"
+              placeholder="nom@exemple.ml"
+            />
+            @if (touched['email'] && erreursIdentite['email']) {
+              <div class="invalid-feedback d-block">{{ erreursIdentite['email'] }}</div>
+            }
+          </div>
+          <div class="col-12">
+            <label class="form-label small fw-semibold">Adresse</label
+            ><input
+              class="form-control"
+              [(ngModel)]="identite.adresse"
+              (blur)="touched['adresse'] = true"
+              [class.is-invalid]="touched['adresse'] && erreursIdentite['adresse']"
+              maxlength="255"
+              placeholder="Votre adresse"
+            />
+            @if (touched['adresse'] && erreursIdentite['adresse']) {
+              <div class="invalid-feedback d-block">{{ erreursIdentite['adresse'] }}</div>
+            }
+          </div>
+        </div>
+      </fieldset>
+      @if (canEditProfile) {
+        @if (!identiteValide) {
+          <p class="form-text">
+            Renseignez les champs obligatoires (*) et corrigez les erreurs signalées.
+          </p>
+        }
+        <div class="d-flex justify-content-end mt-3">
+          <button
+            class="btn btn-primary"
+            [disabled]="saving || !identiteValide"
+            (click)="enregistrerIdentite()"
+          >
+            <i class="fa-solid fa-check"></i> Enregistrer mes informations
+          </button>
+        </div>
+      }
+    </div>
+    <div class="card-x">
+      <h5 class="fw-bold mb-1"><i class="fa-solid fa-key"></i> Changer mon mot de passe</h5>
+      <p class="card-sub">
+        Pour votre sécurité, l'ancien mot de passe est demandé. 8 caractères minimum.
+      </p>
+      <label class="form-label small fw-semibold">Ancien mot de passe</label>
+      <div class="input-group mb-3">
+        <span class="input-group-text"><i class="fa-solid fa-lock"></i></span>
+        <input
+          class="form-control"
+          [type]="show ? 'text' : 'password'"
+          [(ngModel)]="f.ancienMotDePasse"
+          required
+          autocomplete="current-password"
+          placeholder="Saisir le mot de passe actuel"
+        />
+      </div>
+      <label class="form-label small fw-semibold">Nouveau mot de passe</label>
+      <div class="input-group mb-1">
+        <span class="input-group-text"><i class="fa-solid fa-lock-open"></i></span>
+        <input
+          class="form-control"
+          [type]="show ? 'text' : 'password'"
+          [(ngModel)]="f.nouveauMotDePasse"
+          required
+          minlength="8"
+          autocomplete="new-password"
+          placeholder="8 caractères minimum"
+        />
+      </div>
+      <div class="progress-x mb-1" style="height: 6px">
+        <div [style.width.%]="force * 25" [style.background]="forceCouleur"></div>
+      </div>
+      <div class="form-text mb-3">Force : {{ forceTexte }}</div>
+      <label class="form-label small fw-semibold">Confirmer le nouveau mot de passe</label>
+      <div class="input-group mb-1">
+        <span class="input-group-text"><i class="fa-solid fa-circle-check"></i></span>
+        <input
+          class="form-control"
+          [type]="show ? 'text' : 'password'"
+          [(ngModel)]="f.confirmation"
+          required
+          autocomplete="new-password"
+          (keyup.enter)="valider()"
+          placeholder="Saisir à nouveau le mot de passe"
+        />
+      </div>
+      @if (f.confirmation && f.confirmation !== f.nouveauMotDePasse) {
+        <div class="form-text text-danger">Les deux mots de passe ne correspondent pas.</div>
+      }
+      @if (f.nouveauMotDePasse && f.nouveauMotDePasse.length < 8) {
+        <div class="form-text text-danger">
+          Le nouveau mot de passe doit contenir au moins 8 caractères.
+        </div>
+      }
+      @if (f.nouveauMotDePasse && f.nouveauMotDePasse === f.ancienMotDePasse) {
+        <div class="form-text text-danger">
+          Le nouveau mot de passe doit être différent de l'ancien.
+        </div>
+      }
+      <div class="d-flex justify-content-between align-items-center mt-4">
+        <button class="btn btn-light" type="button" (click)="show = !show">
+          <i class="fa-solid" [ngClass]="show ? 'fa-eye-slash' : 'fa-eye'"></i>
+          {{ show ? 'Masquer' : 'Afficher' }}
+        </button>
+        <button class="btn btn-primary" [disabled]="saving || !valide" (click)="valider()">
+          <i class="fa-solid fa-check"></i> Mettre à jour
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+@if (carte && me && canPrintServiceCard) {
+  <app-carte-service
+    [agent]="me"
+    [canUploadSignature]="canUploadSignature"
+    (closed)="carte = false"
+  />
+}

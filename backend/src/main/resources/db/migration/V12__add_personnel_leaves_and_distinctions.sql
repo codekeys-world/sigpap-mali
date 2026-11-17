@@ -1,0 +1,41 @@
+CREATE TABLE conge_absence_personnel (
+    id BIGINT NOT NULL AUTO_INCREMENT,
+    slug VARCHAR(36) NOT NULL,
+    created_by VARCHAR(100),
+    created_date DATETIME(6),
+    last_modified_by VARCHAR(100),
+    last_modified_date DATETIME(6),
+    personnel_id BIGINT NOT NULL,
+    type VARCHAR(20) NOT NULL,
+    nature VARCHAR(150) NOT NULL,
+    date_debut DATE NOT NULL,
+    date_fin DATE,
+    reference VARCHAR(200),
+    observations VARCHAR(1000),
+    fichier VARCHAR(255),
+    PRIMARY KEY (id),
+    UNIQUE KEY uk_conge_absence_slug (slug),
+    KEY idx_conge_absence_personnel_date (personnel_id, date_debut),
+    CONSTRAINT fk_conge_absence_personnel FOREIGN KEY (personnel_id) REFERENCES personnel (id) ON DELETE CASCADE,
+    CONSTRAINT ck_conge_absence_dates CHECK (date_fin IS NULL OR date_fin >= date_debut)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE distinction_personnel (
+    id BIGINT NOT NULL AUTO_INCREMENT,
+    slug VARCHAR(36) NOT NULL,
+    created_by VARCHAR(100),
+    created_date DATETIME(6),
+    last_modified_by VARCHAR(100),
+    last_modified_date DATETIME(6),
+    personnel_id BIGINT NOT NULL,
+    intitule VARCHAR(150) NOT NULL,
+    date_attribution DATE NOT NULL,
+    autorite VARCHAR(200),
+    reference VARCHAR(200),
+    motif VARCHAR(1000),
+    fichier VARCHAR(255),
+    PRIMARY KEY (id),
+    UNIQUE KEY uk_distinction_personnel_slug (slug),
+    KEY idx_distinction_personnel_date (personnel_id, date_attribution),
+    CONSTRAINT fk_distinction_personnel FOREIGN KEY (personnel_id) REFERENCES personnel (id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;

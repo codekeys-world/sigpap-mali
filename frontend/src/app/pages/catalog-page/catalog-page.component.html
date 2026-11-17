@@ -1,0 +1,20 @@
+@if (cat) {
+  <app-crud [config]="cat.config" [baseUrl]="cat.url" (action)="onAction($event)" />
+}
+@if (grades) {
+  <div class="modal-x" (mousedown)="$event.target === $event.currentTarget && (grades = null)">
+    <div class="modal-dialog-x card-x" style="max-width: 520px">
+      <div class="d-flex justify-content-between mb-3">
+        <h5 class="fw-bold mb-0">Grades : {{ corpsNom }}</h5>
+        <button class="btn-close" (click)="grades = null"></button>
+      </div>
+      <ul class="list-group list-group-flush">
+        @for (g of grades; track g.slug) {
+          <li class="list-group-item"><i class="fa-solid fa-award text-danger"></i> {{ g.nom }}</li>
+        } @empty {
+          <li class="list-group-item text-muted">Aucun grade pour ce corps.</li>
+        }
+      </ul>
+    </div>
+  </div>
+}

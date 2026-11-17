@@ -1,0 +1,27 @@
+<div class="ap-alert" [ngClass]="'a-' + type" role="alert">
+  <div class="a-ico"><i class="fa-solid" [ngClass]="icone"></i></div>
+  <div class="a-body">
+    @if (titre) {
+      <div class="a-titre">{{ titre }}</div>
+    }
+    @if (message) {
+      <div class="a-msg">{{ message }}</div>
+    }
+    @if (details?.length) {
+      <ul class="a-details">
+        @for (d of details; track $index) {
+          <li>{{ d }}</li>
+        }
+      </ul>
+    }
+    <ng-content />
+  </div>
+  @if (dismissible) {
+    <button type="button" class="a-close" aria-label="Fermer" (click)="closed.emit()">
+      <i class="fa-solid fa-xmark"></i>
+    </button>
+  }
+  @if (duree) {
+    <div class="a-progress" [style.animation-duration.ms]="duree"></div>
+  }
+</div>

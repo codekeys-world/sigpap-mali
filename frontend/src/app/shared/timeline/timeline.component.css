@@ -1,0 +1,29 @@
+.tl-card {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+@media (max-width: 575px) {
+  .timeline::before {
+    left: 13px;
+  }
+  .tl-dot {
+    width: 28px;
+    height: 28px;
+    font-size: 0.75rem;
+  }
+  .tl-item {
+    padding-left: 40px;
+  }
+  .tl-card {
+    padding: 0.75rem;
+  }
+  .btn-group {
+    max-width: 100%;
+    margin-bottom: 0.5rem;
+  }
+  .btn-group .btn {
+    white-space: normal;
+    overflow-wrap: anywhere;
+  }
+}

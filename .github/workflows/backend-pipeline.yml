@@ -6,10 +6,10 @@ on:
       - ci
       - main
     paths:
-      - backend/**
+      - ../../backend
       - documentation/**
-      - docker/backend/**
-      - docker-compose.yml
+      - ../../docker/backend
+      - ../../docker-compose.yml
       - .github/workflows/backend-pipeline.yml
 jobs:
   compilation:

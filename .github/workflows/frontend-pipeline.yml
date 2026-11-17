@@ -6,10 +6,10 @@ on:
       - ci
       - main
     paths:
-      - frontend/**
+      - ../../frontend
       - documentation/**
-      - docker/frontend/**
-      - docker-compose.yml
+      - ../../docker/frontend
+      - ../../docker-compose.yml
       - .github/workflows/frontend-pipeline.yml
 
 jobs:

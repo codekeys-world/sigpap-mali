@@ -14,7 +14,7 @@ on:
 
 jobs:
   build-image:
-    name: Build the frontend Docker image
+    name: Build the frontend Docker image de SIGPAP
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code

@@ -14,7 +14,7 @@ on:
 jobs:
   compilation:
     runs-on: ubuntu-latest
-    name: Compilation du projet
+    name: Compilation du projet SIGPAP
     steps:
       - name: Checkout code
         uses: actions/checkout@v7
@@ -35,7 +35,7 @@ jobs:
           ./mvnw clean compile
 
   test-unitaire:
-    name: Test unitaire du projet backend
+    name: Test unitaire du projet backend de SIGPAP
     runs-on: ubuntu-latest
     env:
       ACTIVE_PROFILE: test
@@ -88,7 +88,7 @@ jobs:
 
   build-project:
     runs-on: ubuntu-latest
-    name: Build du projet backend
+    name: Build du projet backend de SIGPAP
     needs:
       - compilation
       - test-unitaire
@@ -112,7 +112,7 @@ jobs:
 
   build-image:
     runs-on: ubuntu-latest
-    name: Build et push de l'image docker du backend
+    name: Build et push de l'image docker du backend de SIGPAP
     needs:
       - build-project
     steps:

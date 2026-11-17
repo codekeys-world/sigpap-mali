@@ -28,7 +28,7 @@ jobs:
           distribution: 'temurin'
           java-version: '17'
 
-      - name: Complilation du projet
+      - name: Compilation du projet
         run: |
           cd backend
           chmod +x ./mvnw

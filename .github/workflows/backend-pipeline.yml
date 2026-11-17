@@ -154,3 +154,37 @@ jobs:
           platforms: linux/amd64
           push: true
           tags: ${{ secrets.DOCKERHUB_USERNAME }}/sigpap-backend:${{ env.VERSION }},${{ secrets.DOCKERHUB_USERNAME }}/sigpap-backend:latest
+
+  deploiement:
+    name: Déploiement du backend de SIGPAP
+    needs:
+      - build-image
+    runs-on: self-hosted
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: '0'
+          clean: true
+
+      - name: Configuration SSH
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_ed25519_sigpap
+          chmod 600 ~/.ssh/id_ed25519_sigpap
+          ssh-keyscan -H ${{ secrets.VPS_IP }} >> ~/.ssh/known_hosts
+
+      - name: Copie du fichier docker-compose et déploiement
+        run: |
+          ssh ${{ secrets.VPS_USERNAME }}@${{ secrets.VPS_IP }} "mkdir -p ~/sigpap-mali"
+          scp docker-compose.yml ${{ secrets.VPS_USERNAME }}@${{ secrets.VPS_IP }}:~/sigpap-mali/docker-compose.yml
+          ssh ${{ secrets.VPS_USERNAME }}@${{ secrets.VPS_IP }} << EOF
+          echo "${{ secrets.DOCKERHUB_TOKEN }}" | docker login -u "${{ secrets.DOCKERHUB_USERNAME }}" --password-stdin
+          cd ~/sigpap-mali
+          docker compose -f docker-compose.yml down
+          docker compose -f docker-compose.yml pull -q
+          docker compose -f docker-compose.yml up -d --force-recreate
+          docker logout
+          EOF
+
+

@@ -15,7 +15,7 @@ spring:
   jpa:
     open-in-view: false
     hibernate:
-      ddl-auto: update # passer à validate après migration Flyway complète du schéma
+      ddl-auto: validate
     properties:
       hibernate:
         format_sql: false

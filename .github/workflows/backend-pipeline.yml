@@ -70,7 +70,7 @@ jobs:
           distribution: 'temurin'
           java-version: '17'
 
-      - name: Exécution des tests unitaires
+      - name: Exécution des tests unitaires du projet
         working-directory: backend
         run: |
           chmod +x ./mvnw

@@ -20,7 +20,7 @@ jobs:
           fetch-depth: 0
           clean: 'true'
 
-      - name: Extract project version
+      - name: Extract de la version project
         id: extract_version
         run: |
           cd frontend

@@ -58,22 +58,46 @@ jobs:
           fetch-depth: 0
           clean: 'true'
 
+
       - name: Configuration SSH
         run: |
           mkdir -p ~/.ssh
-          echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_ed25519_sigpap
+          chmod 700 ~/.ssh
+
+          printf '%s\n' "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_ed25519_sigpap
           chmod 600 ~/.ssh/id_ed25519_sigpap
-          ssh-keyscan -H ${{ secrets.VPS_IP }} >> ~/.ssh/known_hosts
+
+          ssh-keyscan -H "${{ secrets.VPS_IP }}" >> ~/.ssh/known_hosts
+
+      - name: Test connexion SSH
+        run: |
+          ssh -i ~/.ssh/id_ed25519_sigpap \
+            -o IdentitiesOnly=yes \
+            -o ConnectTimeout=20 \
+            ${{ secrets.VPS_USERNAME }}@${{ secrets.VPS_IP }} \
+            "echo 'Connexion SSH frontend réussie'"
 
       - name: Copie du fichier docker-compose et déploiement
         run: |
-          ssh ${{ secrets.VPS_USERNAME }}@${{ secrets.VPS_IP }} "mkdir -p ~/sigpap-mali"
-          scp docker-compose.yml ${{ secrets.VPS_USERNAME }}@${{ secrets.VPS_IP }}:~/sigpap-mali/docker-compose.yml
-          ssh ${{ secrets.VPS_USERNAME }}@${{ secrets.VPS_IP }} << EOF
-          echo "${{ secrets.DOCKERHUB_TOKEN }}" | docker login -u "${{ secrets.DOCKERHUB_USERNAME }}" --password-stdin
-          cd ~/sigpap-mali
-          docker compose -f docker-compose.yml down
-          docker compose -f docker-compose.yml pull -q
-          docker compose -f docker-compose.yml up -d --force-recreate
-          docker logout
+          SSH="ssh -i ~/.ssh/id_ed25519_sigpap -o IdentitiesOnly=yes"
+          SCP="scp -i ~/.ssh/id_ed25519_sigpap -o IdentitiesOnly=yes"
+
+          $SSH ${{ secrets.VPS_USERNAME }}@${{ secrets.VPS_IP }} \
+            "mkdir -p ~/sigpap-mali"
+
+          $SCP docker-compose.yml \
+            ${{ secrets.VPS_USERNAME }}@${{ secrets.VPS_IP }}:~/sigpap-mali/docker-compose.yml
+
+          $SSH ${{ secrets.VPS_USERNAME }}@${{ secrets.VPS_IP }} << EOF
+            set -e
+
+            echo "${{ secrets.DOCKERHUB_TOKEN }}" | \
+              docker login -u "${{ secrets.DOCKERHUB_USERNAME }}" --password-stdin
+
+            cd ~/sigpap-mali
+
+            docker compose -f docker-compose.yml pull -q
+            docker compose -f docker-compose.yml up -d --force-recreate
+
+            docker logout
           EOF

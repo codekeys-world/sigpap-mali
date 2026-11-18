@@ -14,7 +14,7 @@ on:
 
 jobs:
   build-image:
-    name: Build the frontend Docker image de SIGPAP
+    name: Build de l'image Docker du frontend de SIGPAP-MALI
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
@@ -48,7 +48,7 @@ jobs:
           tags: ${{ secrets.DOCKERHUB_USERNAME }}/sigpap-frontend:${{ steps.extract_version.outputs.VERSION}},${{ secrets.DOCKERHUB_USERNAME }}/sigpap-frontend:latest
 
   deploiement:
-    name: Deploy frontend Docker Image
+    name: Déploiement de l'image du frontend du projet du SIGPAP-MALI
     runs-on: self-hosted
     needs: build-image
     steps:
@@ -67,11 +67,11 @@ jobs:
 
       - name: Copie du fichier docker-compose et déploiement
         run: |
-          ssh ${{ secrets.VPS_USERNAME }}@${{ secrets.VPS_IP }} "mkdir -p ~/sigpap-project"
-          scp docker-compose.yml ${{ secrets.VPS_USERNAME }}@${{ secrets.VPS_IP }}:~/sigpap-project/docker-compose.yml
+          ssh ${{ secrets.VPS_USERNAME }}@${{ secrets.VPS_IP }} "mkdir -p ~/sigpap-mali"
+          scp docker-compose.yml ${{ secrets.VPS_USERNAME }}@${{ secrets.VPS_IP }}:~/sigpap-mali/docker-compose.yml
           ssh ${{ secrets.VPS_USERNAME }}@${{ secrets.VPS_IP }} << EOF
           echo "${{ secrets.DOCKERHUB_TOKEN }}" | docker login -u "${{ secrets.DOCKERHUB_USERNAME }}" --password-stdin
-          cd ~/sigpap-project
+          cd ~/sigpap-mali
           docker compose -f docker-compose.yml down
           docker compose -f docker-compose.yml pull -q
           docker compose -f docker-compose.yml up -d --force-recreate

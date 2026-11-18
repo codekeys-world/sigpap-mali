@@ -1,4 +1,4 @@
-name: Pipeline de déploiement du backend du projet SIGPAP-MALI
+name: Pipeline de déploiement du backend du projet du SIGPAP-MALI
 on:
   push:
     branches:
@@ -14,7 +14,7 @@ on:
 jobs:
   compilation:
     runs-on: ubuntu-latest
-    name: Compilation du projet SIGPAP
+    name: Compilation du projet Backend du SIGPAP-MALI
     steps:
       - name: Checkout code
         uses: actions/checkout@v7
@@ -35,7 +35,7 @@ jobs:
           ./mvnw clean compile
 
   test-unitaire:
-    name: Test unitaire du projet backend de SIGPAP
+    name: Test unitaire du projet backend du SIGPAP-MALI
     runs-on: ubuntu-latest
     env:
       ACTIVE_PROFILE: test
@@ -88,7 +88,7 @@ jobs:
 
   build-project:
     runs-on: ubuntu-latest
-    name: Build du projet backend de SIGPAP
+    name: Build du projet backend du SIGPAP-MALI
     needs:
       - compilation
       - test-unitaire
@@ -112,7 +112,7 @@ jobs:
 
   build-image:
     runs-on: ubuntu-latest
-    name: Build et push de l'image docker du backend de SIGPAP
+    name: Build et push de l'image docker du backend du projet du SIGPAP-MALI
     needs:
       - build-project
     steps:
@@ -156,7 +156,7 @@ jobs:
           tags: ${{ secrets.DOCKERHUB_USERNAME }}/sigpap-backend:${{ env.VERSION }},${{ secrets.DOCKERHUB_USERNAME }}/sigpap-backend:latest
 
   deploiement:
-    name: Déploiement du backend de SIGPAP
+    name: Déploiement du backend du projet du SIGPAP-MALI
     needs:
       - build-image
     runs-on: self-hosted

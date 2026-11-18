@@ -1,4 +1,4 @@
-name: CI
+name: CI du Projet du SIGPAP-MALI
 on:
   push:
     branches: [main]

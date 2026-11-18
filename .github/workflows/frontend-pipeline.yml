@@ -3,7 +3,7 @@ on:
   push:
     branches: [develop, ci, main]
     paths:
-      - ../../frontend
+      - ../../frontend/**
       - documentation/**
       - ../../docker/frontend
       - ../../docker-compose.yml

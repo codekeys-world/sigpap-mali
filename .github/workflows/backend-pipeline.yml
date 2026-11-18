@@ -1,10 +1,7 @@
 name: Pipeline de déploiement du backend du projet du SIGPAP-MALI
 on:
   push:
-    branches:
-      - develop
-      - ci
-      - main
+    branches: [develop, ci, main]
     paths:
       - ../../backend
       - documentation/**

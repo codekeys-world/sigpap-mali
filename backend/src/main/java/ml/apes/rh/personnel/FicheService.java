@@ -102,35 +102,43 @@ public class FicheService {
         ministry.setBorder(Rectangle.NO_BORDER);
         ministry.setPadding(0);
         ministry.setVerticalAlignment(Element.ALIGN_TOP);
-        Paragraph ministryName = new Paragraph(
-            "MINISTÈRE DE LA JUSTICE\nET DES DROITS DE L’HOMME", official
-        );
+        String ministryLine = "ET DES DROITS DE L’HOMME";
+        Paragraph ministryName = new Paragraph("MINISTÈRE DE LA JUSTICE\n" + ministryLine, official);
         ministryName.setLeading(13);
         ministry.addElement(ministryName);
 
-        Paragraph separator = new Paragraph("********", official);
+        Chunk stars = new Chunk("********", official);
+        Paragraph separator = new Paragraph(stars);
         separator.setLeading(12);
-        separator.setAlignment(Element.ALIGN_CENTER);
+        float ministryLineWidth = new Chunk(ministryLine, official).getWidthPoint();
+        separator.setIndentationLeft((ministryLineWidth - stars.getWidthPoint()) / 2);
         ministry.addElement(separator);
 
-        Paragraph directorate = new Paragraph(
-            "DIRECTION GÉNÉRALE DE\nL’ADMINISTRATION PÉNITENTIAIRE", official
-        );
+        String directorateLine = "L’ADMINISTRATION PÉNITENTIAIRE";
+        Paragraph directorate = new Paragraph("DIRECTION GÉNÉRALE DE\n" + directorateLine, official);
         directorate.setLeading(13);
         ministry.addElement(directorate);
 
+        PdfPTable logoBlock = new PdfPTable(1);
+        logoBlock.setTotalWidth(new Chunk(directorateLine, official).getWidthPoint());
+        logoBlock.setLockedWidth(true);
+        logoBlock.setHorizontalAlignment(Element.ALIGN_LEFT);
+        PdfPCell logoCell = new PdfPCell();
+        logoCell.setBorder(Rectangle.NO_BORDER);
+        logoCell.setPadding(0);
+        logoCell.setPaddingTop(6);
         try (var input = new ClassPathResource("logo-print.png").getInputStream()) {
             Image logo = Image.getInstance(input.readAllBytes());
             logo.scaleToFit(56, 66);
-            logo.setSpacingBefore(6);
             logo.setAlignment(Element.ALIGN_CENTER);
-            ministry.addElement(logo);
+            logoCell.addElement(logo);
         } catch (Exception ignored) {
             Paragraph initials = new Paragraph("AP", font(18, true, Color.BLACK));
-            initials.setSpacingBefore(6);
             initials.setAlignment(Element.ALIGN_CENTER);
-            ministry.addElement(initials);
+            logoCell.addElement(initials);
         }
+        logoBlock.addCell(logoCell);
+        ministry.addElement(logoBlock);
         header.addCell(ministry);
 
         PdfPCell republic = new PdfPCell();

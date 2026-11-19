@@ -82,6 +82,10 @@ class FicheServiceTest {
         Files.write(Path.of("target/fiche-preview/fiche-agent.pdf"), pdf);
         PdfReader reader = new PdfReader(pdf);
         try {
+            assertEquals(2, reader.getNumberOfPages());
+            String firstPage = new PdfTextExtractor(reader).getTextFromPage(1);
+            assertTrue(firstPage.contains("MINISTÈRE DE LA JUSTICE"), firstPage);
+            assertTrue(firstPage.contains("RÉPUBLIQUE DU MALI"), firstPage);
             String text = allText(reader);
             assertTrue(text.contains("Aminata TRAORÉ"), text);
             assertTrue(text.contains("Personnel non surveillant"), text);

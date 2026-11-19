@@ -20,15 +20,14 @@ import ml.apes.rh.personnel.Dtos.MutationEvent;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.stereotype.Service;
 
-/** A4 career record styled to match the AP service card. */
+/** A4 career record using the SIGPAP-MALI visual identity. */
 @Service
 public class FicheService {
 
     private static final Color BORDEAUX = new Color(75, 13, 13);
     private static final Color BORDEAUX_CLAIR = new Color(139, 30, 30);
-    private static final Color ROUGE = new Color(227, 6, 19);
     private static final Color VERT = new Color(0, 146, 69);
-    private static final Color JAUNE = new Color(255, 214, 0);
+    private static final Color ROSE = new Color(244, 233, 230);
     private static final Color GRIS = new Color(247, 245, 245);
     private static final Color BORD = new Color(230, 222, 222);
     private static final Color TEXTE = new Color(42, 42, 42);
@@ -87,67 +86,75 @@ public class FicheService {
         cell.setPadding(padding);
         cell.setVerticalAlignment(Element.ALIGN_MIDDLE);
         cell.setBorderColor(BORD);
+        cell.setBorder(Rectangle.BOTTOM);
+        cell.setBorderWidth(0.5f);
         cell.setBackgroundColor(background);
         return cell;
     }
 
     private void addHeader(Document doc) throws DocumentException {
-        PdfPTable header = new PdfPTable(new float[] { 1.2f, 5.8f });
+        Font official = FontFactory.getFont(FontFactory.TIMES_BOLD, 11, Font.NORMAL, Color.BLACK);
+        PdfPTable header = new PdfPTable(new float[] { 1.15f, 1f });
         header.setWidthPercentage(100);
-        PdfPCell logoCell = new PdfPCell();
-        logoCell.setBackgroundColor(Color.WHITE);
-        logoCell.setBorder(Rectangle.NO_BORDER);
-        logoCell.setPadding(5);
-        logoCell.setVerticalAlignment(Element.ALIGN_MIDDLE);
+        header.setKeepTogether(true);
+
+        PdfPCell ministry = new PdfPCell();
+        ministry.setBorder(Rectangle.NO_BORDER);
+        ministry.setPadding(0);
+        ministry.setVerticalAlignment(Element.ALIGN_TOP);
+        Paragraph ministryName = new Paragraph(
+            "MINISTÈRE DE LA JUSTICE\nET DES DROITS DE L’HOMME", official
+        );
+        ministryName.setLeading(13);
+        ministry.addElement(ministryName);
+
+        Paragraph separator = new Paragraph("********", official);
+        separator.setLeading(12);
+        separator.setAlignment(Element.ALIGN_CENTER);
+        ministry.addElement(separator);
+
+        Paragraph directorate = new Paragraph(
+            "DIRECTION GÉNÉRALE DE\nL’ADMINISTRATION PÉNITENTIAIRE", official
+        );
+        directorate.setLeading(13);
+        ministry.addElement(directorate);
+
         try (var input = new ClassPathResource("logo-print.png").getInputStream()) {
             Image logo = Image.getInstance(input.readAllBytes());
-            logo.scaleToFit(66, 82);
+            logo.scaleToFit(56, 66);
+            logo.setSpacingBefore(6);
             logo.setAlignment(Element.ALIGN_CENTER);
-            logoCell.addElement(logo);
+            ministry.addElement(logo);
         } catch (Exception ignored) {
-            logoCell.addElement(new Paragraph("AP", font(24, true, BORDEAUX)));
+            Paragraph initials = new Paragraph("AP", font(18, true, Color.BLACK));
+            initials.setSpacingBefore(6);
+            initials.setAlignment(Element.ALIGN_CENTER);
+            ministry.addElement(initials);
         }
-        header.addCell(logoCell);
+        header.addCell(ministry);
 
-        PdfPCell title = new PdfPCell();
-        title.setBackgroundColor(Color.WHITE);
-        title.setBorder(Rectangle.NO_BORDER);
-        title.setPaddingLeft(16);
-        title.setPaddingRight(12);
-        title.setPaddingTop(13);
-        title.setPaddingBottom(13);
-        title.setVerticalAlignment(Element.ALIGN_MIDDLE);
-        title.addElement(
-            new Paragraph("ADMINISTRATION P\u00C9NITENTIAIRE", font(10, true, BORDEAUX))
-        );
-        Paragraph documentTitle = new Paragraph(
-            "FICHE INDIVIDUELLE DE CARRI\u00C8RE",
-            font(16, true, BORDEAUX)
-        );
-        documentTitle.setSpacingBefore(5);
-        title.addElement(documentTitle);
+        PdfPCell republic = new PdfPCell();
+        republic.setBorder(Rectangle.NO_BORDER);
+        republic.setPadding(0);
+        republic.setVerticalAlignment(Element.ALIGN_TOP);
         Paragraph motto = new Paragraph(
-            "République du Mali\nUn Peuple - Un But - Une Foi",
-            font(8, false, TEXTE)
+            "RÉPUBLIQUE DU MALI\nUn Peuple – Un But – Une Foi\n********", official
         );
-        motto.setSpacingBefore(3);
-        title.addElement(motto);
-        title.addElement(
-            new Paragraph("SIGPAP-MALI | Gestion du personnel", font(8, true, BORDEAUX))
-        );
-        header.addCell(title);
-        doc.add(header);
+        motto.setLeading(13);
+        motto.setAlignment(Element.ALIGN_CENTER);
+        republic.addElement(motto);
+        header.addCell(republic);
 
-        PdfPTable tricolor = new PdfPTable(3);
-        tricolor.setWidthPercentage(100);
-        for (Color color : new Color[] { VERT, JAUNE, ROUGE }) {
-            PdfPCell stripe = new PdfPCell(new Phrase(" "));
-            stripe.setBackgroundColor(color);
-            stripe.setBorder(Rectangle.NO_BORDER);
-            stripe.setFixedHeight(5);
-            tricolor.addCell(stripe);
-        }
-        doc.add(tricolor);
+        PdfPCell titleCell = new PdfPCell(
+            new Phrase("FICHE INDIVIDUELLE DE CARRIÈRE", font(15, true, Color.BLACK))
+        );
+        titleCell.setColspan(2);
+        titleCell.setBorder(Rectangle.NO_BORDER);
+        titleCell.setHorizontalAlignment(Element.ALIGN_CENTER);
+        titleCell.setPaddingTop(8);
+        titleCell.setPaddingBottom(2);
+        header.addCell(titleCell);
+        doc.add(header);
     }
 
     private void addSection(
@@ -159,13 +166,13 @@ public class FicheService {
     ) throws DocumentException {
         PdfPTable table = new PdfPTable(widths);
         table.setWidthPercentage(100);
-        table.setSpacingBefore(14);
+        table.setSpacingBefore(16);
         table.setSplitRows(true);
         table.setSplitLate(false);
         PdfPCell heading = cell(
             title.toUpperCase(Locale.FRENCH),
             font(10, true, BORDEAUX),
-            GRIS,
+            ROSE,
             8
         );
         heading.setColspan(headers.length);
@@ -183,11 +190,11 @@ public class FicheService {
             return;
         }
         for (String header : headers)
-            table.addCell(cell(header, font(8, true, Color.WHITE), BORDEAUX, 5));
+            table.addCell(cell(header, font(8, true, BORDEAUX), GRIS, 7));
         for (int i = 0; i < rows.size(); i++) {
             for (String value : rows.get(i)) {
                 table.addCell(
-                    cell(value, font(8, false, TEXTE), i % 2 == 0 ? Color.WHITE : GRIS, 5)
+                    cell(value, font(8.5f, false, TEXTE), i % 2 == 0 ? Color.WHITE : GRIS, 7)
                 );
             }
         }
@@ -197,22 +204,30 @@ public class FicheService {
 
     private void addInformation(Document doc, String title, String[][] fields)
         throws DocumentException {
-        Paragraph heading = new Paragraph(
-            title.toUpperCase(Locale.FRENCH),
-            font(10, true, BORDEAUX)
-        );
-        heading.setSpacingBefore(14);
-        heading.setSpacingAfter(6);
-        heading.setKeepTogether(true);
-        doc.add(heading);
         PdfPTable table = new PdfPTable(2);
         table.setWidthPercentage(100);
+        table.setSpacingBefore(13);
+        table.setKeepTogether(true);
+        PdfPCell headingCell = cell(
+            title.toUpperCase(Locale.FRENCH), font(10, true, BORDEAUX), ROSE, 8
+        );
+        headingCell.setColspan(2);
+        table.addCell(headingCell);
         for (String[] field : fields) {
             PdfPCell box = new PdfPCell();
             box.setBorderColor(BORD);
-            box.setPadding(7);
-            box.addElement(new Paragraph(field[0], font(8, false, BORDEAUX_CLAIR)));
-            box.addElement(new Paragraph(safe(field[1]), font(9, true, TEXTE)));
+            box.setBorder(Rectangle.BOTTOM);
+            box.setBorderWidth(0.5f);
+            box.setPadding(8);
+            box.setPaddingTop(6);
+            box.setPaddingBottom(6);
+            Paragraph label = new Paragraph(field[0], font(8, false, BORDEAUX_CLAIR));
+            label.setLeading(10);
+            box.addElement(label);
+            Paragraph value = new Paragraph(safe(field[1]), font(9, true, TEXTE));
+            value.setLeading(11);
+            value.setSpacingBefore(2);
+            box.addElement(value);
             table.addCell(box);
         }
         table.completeRow();
@@ -295,16 +310,16 @@ public class FicheService {
                 "IDENTITÉ DE L’AGENT",
                 font(10, true, BORDEAUX)
             );
-            identityTitle.setSpacingBefore(13);
-            identityTitle.setSpacingAfter(4);
+            identityTitle.setSpacingBefore(16);
+            identityTitle.setSpacingAfter(7);
             doc.add(identityTitle);
 
             PdfPTable identity = new PdfPTable(new float[] { 1.35f, 5.65f });
             identity.setWidthPercentage(100);
             PdfPCell photoCell = new PdfPCell();
             photoCell.setBorderColor(BORD);
-            photoCell.setBackgroundColor(GRIS);
-            photoCell.setPadding(7);
+            photoCell.setBackgroundColor(ROSE);
+            photoCell.setPadding(10);
             photoCell.setVerticalAlignment(Element.ALIGN_MIDDLE);
             boolean hasPhoto = false;
             if (photo != null) {
@@ -334,6 +349,8 @@ public class FicheService {
 
             PdfPCell summary = new PdfPCell();
             summary.setBorderColor(BORD);
+            summary.setBorder(Rectangle.TOP | Rectangle.RIGHT | Rectangle.BOTTOM);
+            summary.setBackgroundColor(GRIS);
             summary.setPadding(14);
             summary.setVerticalAlignment(Element.ALIGN_MIDDLE);
             summary.addElement(
@@ -342,21 +359,23 @@ public class FicheService {
                     font(19, true, BORDEAUX)
                 )
             );
-            summary.addElement(
-                new Paragraph("Matricule : " + safe(p.getMatricule()), font(11, true, TEXTE))
+            Paragraph matricule = new Paragraph(
+                "Matricule : " + safe(p.getMatricule()), font(10, true, TEXTE)
             );
+            matricule.setSpacingBefore(4);
+            summary.addElement(matricule);
             summary.addElement(
                 new Paragraph(
                     p.isSurveillant() ? "Personnel surveillant" : "Personnel non surveillant",
                     font(10, false, TEXTE)
                 )
             );
-            summary.addElement(
-                new Paragraph(
-                    p.getSituation().libelle(),
-                    font(11, true, p.getSituation() == SituationAgent.ACTIF ? VERT : BORDEAUX_CLAIR)
-                )
+            Paragraph situation = new Paragraph(
+                p.getSituation().libelle(),
+                font(11, true, p.getSituation() == SituationAgent.ACTIF ? VERT : BORDEAUX_CLAIR)
             );
+            situation.setSpacingBefore(5);
+            summary.addElement(situation);
             identity.addCell(summary);
             doc.add(identity);
             addInformation(doc, "Identité et coordonnées", new String[][] {

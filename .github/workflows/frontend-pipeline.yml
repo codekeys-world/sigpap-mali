@@ -11,7 +11,7 @@ on:
 
 jobs:
   build-image:
-    name: Build de l'image Docker du frontend de SIGPAP-MALI
+    name: Build de l'image Docker du frontend du projet du SIGPAP-MALI
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code

@@ -11,7 +11,7 @@ on:
 jobs:
   compilation:
     runs-on: ubuntu-latest
-    name: Compilation du projet Backend du SIGPAP-MALI
+    name: Compilation du projet backend du SIGPAP-MALI
     steps:
       - name: Checkout code
         uses: actions/checkout@v7
